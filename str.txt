@@ -1,0 +1,59 @@
+alice_borderland_game/
+├── run.py
+├── config.py
+├── requirements.txt
+├── instance/
+│   └── app.db                # SQLite file (auto-created)
+├── app/
+│   ├── __init__.py
+│   ├── auth/                 # Login & Signup module
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   └── forms.py
+│   ├── main/                 # Home, Dashboard, Story, Play Game
+│   │   ├── __init__.py
+│   │   ├── routes.py ~
+│   │   └── utils.py ~
+│   ├── games/                # All game logic + suit/card mappings
+│   │   ├── __init__.py
+│   │   ├── card_engine.py ~   # Suits, Ace–10 logic, phase tracking
+│   │   ├── spades.py         # Spades mini-games
+│   │   ├── hearts.py
+│   │   ├── diamonds.py
+│   │   └── clubs.py
+│   ├── models.py ~             # User + Progress tracking
+│   ├── templates/
+│   │   ├── base.html ~
+│   │   ├── auth/
+│   │   │   ├── login.html
+│   │   │   └── signup.html
+│   │   ├── main/
+│   │   │   ├── home.html ~
+│   │   │   ├── dashboard.html ~
+│   │   │   ├── story.html
+│   │   │   ├── play.html ~        # 4 suits display
+│   │   │   ├── suit_cards.html ~ # Shows A–10 of selected suit
+│   │   └── games/
+│   │       ├── spades_ace.html
+│   │       ├── spades_2.html
+│   │       ├── spades_3.html
+│   │       ├── ... etc (for future)
+│   │       └── generic_game.html ~  # fallback template
+│   ├── static/
+│   │   ├── css/
+│   │   │   ├── theme.css ~         # Alice in Borderland theme
+│   │   │   └── layout.css ~
+│   │   ├── js/
+│   │   │   ├── spades.js
+│   │   │   ├── hearts.js
+│   │   │   └── ui.js
+│   │   ├── images/
+│   │   │   ├── bg_home.jpg
+│   │   │   ├── bg_dashboard.jpg
+│   │   │   ├── card_spades.png
+│   │   │   ├── card_hearts.png
+│   │   │   ├── card_diamonds.png
+│   │   │   └── card_clubs.png
+│   │   └── fonts/
+│   │       └── dystopian.ttf     # Theme font (if used)
+└── migrations/                  # Flask-Migrate DB files (auto)

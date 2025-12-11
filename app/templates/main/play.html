@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="menu-title">SELECT YOUR SUIT</h2>
+
+<div class="suit-container">
+
+    <a class="suit-card spades" href="{{ url_for('main.suit_cards', suit='spades') }}">
+        ♠ Spades
+    </a>
+
+    <a class="suit-card hearts" href="{{ url_for('main.suit_cards', suit='hearts') }}">
+        ♥ Hearts
+    </a>
+
+    <a class="suit-card diamonds" href="{{ url_for('main.suit_cards', suit='diamonds') }}">
+        ♦ Diamonds
+    </a>
+
+    <a class="suit-card clubs" href="{{ url_for('main.suit_cards', suit='clubs') }}">
+        ♣ Clubs
+    </a>
+
+</div>
+
+{% endblock %}

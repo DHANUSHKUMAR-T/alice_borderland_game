@@ -1,0 +1,34 @@
+body.dark-theme {
+    background: #000 url("../images/dark_bg.jpg") no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+}
+
+.blood-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("../images/blood.png");
+    opacity: 0.25;
+    pointer-events: none;
+}
+
+.grunge-overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: url("../images/grunge.png");
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.title {
+    text-align: center;
+    padding: 15px;
+    font-size: 26px;
+    color: #ff3434;
+    letter-spacing: 4px;
+}

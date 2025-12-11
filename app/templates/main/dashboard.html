@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="dashboard-container">
+
+    <h2 class="menu-title">MAIN MENU</h2>
+
+    <div class="button-group">
+        <a href="{{ url_for('main.story') }}" class="btn red-btn">STORY MODE</a>
+        <a href="{{ url_for('main.play') }}" class="btn card-btn">PLAY GAME</a>
+    </div>
+
+</div>
+
+{% endblock %}

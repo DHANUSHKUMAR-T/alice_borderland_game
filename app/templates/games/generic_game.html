@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <h2 class="game-title">{{ suit|title }} {{ card }}</h2>
+
+    <p class="game-desc">
+        This is a placeholder game page. The real mini-game will be added later.
+    </p>
+
+    <form method="POST" action="{{ url_for('main.complete_card', suit=suit, card=card) }}">
+        <button class="btn red-btn">MARK AS COMPLETED</button>
+    </form>
+
+</div>
+
+{% endblock %}
