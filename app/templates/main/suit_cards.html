@@ -5,13 +5,46 @@
 
 <div class="cards-grid">
 
+    {% set suit_map = {
+        "spades": "S",
+        "hearts": "H",
+        "diamonds": "D",
+        "clubs": "C"
+    } %}
+
     {% for card, done in cards.items() %}
-        <a class="card-tile {{ 'completed' if done else 'not-completed' }}"
-           href="{{ url_for('games.play_card', suit=suit, card=card) }}">
-            {{ card }}
+
+        {% if card == '10' %}
+            {% set rank = '0' %}
+        {% else %}
+            {% set rank = card %}
+        {% endif %}
+
+        {% set suit_code = suit_map[suit] %}
+        {% set img_url = "https://deckofcardsapi.com/static/img/" + rank + suit_code + ".png" %}
+
+        <a class="card-tile"
+           href="{{ url_for('main.complete_card', suit=suit, card=card) }}">
+
+            <img src="{{ img_url }}" class="card-image">
+
         </a>
+
     {% endfor %}
 
+</div>
+
+<!-- BOTTOM RIGHT FACE CARD BUTTON -->
+<div class="face-card-container">
+    {% if all_done %}
+        <a class="face-card-btn unlocked" href="{{ url_for('main.face_cards', suit=suit) }}">
+            Face Cards →
+        </a>
+    {% else %}
+        <button class="face-card-btn locked" disabled>
+            🔒 Face Cards (Complete A–10)
+        </button>
+    {% endif %}
 </div>
 
 {% endblock %}

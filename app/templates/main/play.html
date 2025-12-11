@@ -5,20 +5,24 @@
 
 <div class="suit-container">
 
-    <a class="suit-card spades" href="{{ url_for('main.suit_cards', suit='spades') }}">
-        ♠ Spades
+    <a class="suit-card" href="{{ url_for('main.suit_cards', suit='spades') }}">
+        <img src="{{ url_for('static', filename='images/spade_A.png') }}" class="card-img">
+        <span>♠ Spades</span>
     </a>
 
-    <a class="suit-card hearts" href="{{ url_for('main.suit_cards', suit='hearts') }}">
-        ♥ Hearts
+    <a class="suit-card" href="{{ url_for('main.suit_cards', suit='hearts') }}">
+        <img src="{{ url_for('static', filename='images/heart_A.jpg') }}" class="card-img">
+        <span>♥ Hearts</span>
     </a>
 
-    <a class="suit-card diamonds" href="{{ url_for('main.suit_cards', suit='diamonds') }}">
-        ♦ Diamonds
+    <a class="suit-card" href="{{ url_for('main.suit_cards', suit='diamonds') }}">
+        <img src="{{ url_for('static', filename='images/diamond_A.jpg') }}" class="card-img">
+        <span>♦ Diamonds</span>
     </a>
 
-    <a class="suit-card clubs" href="{{ url_for('main.suit_cards', suit='clubs') }}">
-        ♣ Clubs
+    <a class="suit-card" href="{{ url_for('main.suit_cards', suit='clubs') }}">
+        <img src="{{ url_for('static', filename='images/club_A.jpg') }}" class="card-img">
+        <span>♣ Clubs</span>
     </a>
 
 </div>
