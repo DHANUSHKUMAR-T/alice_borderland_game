@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <h2 class="menu-title">🂤 Spades – Big Even / Odd Finder</h2>
+    <p class="game-text">Choose the correct number based on the instruction!</p>
+
+    <div id="instruction" class="instruction-text"></div>
+
+    <div id="numbers" class="numbers-box"></div>
+
+    <p id="result" class="result-text"></p>
+
+    <!-- BUTTON ROW LIKE A,2,3 STYLE -->
+    <div class="button-row">
+        <button id="start-btn" class="btn red-btn">Start Game</button>
+
+        <a id="next-btn" 
+           href="{{ url_for('main.game_page', suit='spades', card='5') }}" 
+           class="btn card-btn" 
+           style="display:none;">Next Card →</a>
+
+        <a href="{{ url_for('main.suit_cards', suit='spades') }}" 
+           class="btn card-btn">Back</a>
+    </div>
+
+</div>
+
+<script>
+const instructionEl = document.getElementById("instruction");
+const numbersEl = document.getElementById("numbers");
+const resultEl = document.getElementById("result");
+const startBtn = document.getElementById("start-btn");
+const nextBtn = document.getElementById("next-btn");
+
+let mode = "";
+let numbers = [];
+
+function startGame() {
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+
+    mode = Math.random() < 0.5 ? "EVEN" : "ODD";
+
+    instructionEl.textContent = mode === "EVEN"
+        ? "👉 Find the BIGGEST EVEN number!"
+        : "👉 Find the BIGGEST ODD number!";
+
+    numbers = Array.from({ length: 4 }, () => Math.floor(Math.random() * 90) + 10);
+
+    numbersEl.innerHTML = "";
+    numbers.forEach(num => {
+        let btn = document.createElement("button");
+        btn.className = "num-btn";
+        btn.textContent = num;
+        btn.onclick = () => checkAnswer(num);
+        numbersEl.appendChild(btn);
+    });
+}
+
+function checkAnswer(selected) {
+    let filtered = numbers.filter(n => mode === "EVEN" ? n % 2 === 0 : n % 2 === 1);
+
+    if (filtered.length === 0) {
+        resultEl.textContent = "⚠ No valid numbers! Restarting...";
+        resultEl.style.color = "#ffaa00";
+        setTimeout(startGame, 2000);
+        return;
+    }
+
+    let correct = Math.max(...filtered);
+
+    if (selected === correct) {
+        resultEl.textContent = "🎉 Correct! Well done!";
+        resultEl.style.color = "#00ff66";
+        nextBtn.style.display = "inline-block";
+    } else {
+        resultEl.textContent = `❌ Wrong! The correct answer was ${correct}.`;
+        resultEl.style.color = "#ff3333";
+        setTimeout(startGame, 2000);
+    }
+}
+
+startBtn.addEventListener("click", startGame);
+</script>
+
+<style>
+.instruction-text {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: #ff5555;
+    text-shadow: 0 0 5px black;
+}
+
+.numbers-box {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.num-btn {
+    padding: 15px 25px;
+    font-size: 26px;
+    font-weight: bold;
+    background: #111;
+    color: white;
+    border: 2px solid red;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.num-btn:hover {
+    background: red;
+    transform: scale(1.1);
+}
+
+/* ★ BUTTON ROW LIKE SPADES A,2,3 */
+.button-row {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+.result-text {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="menu-title">SPADES – PHASE 1</div>
+
+<div class="cards-grid">
+
+    <!-- ACE OF SPADES (A) -->
+    <div class="card-wrapper">
+        <a href="{{ url_for('main.spades_A') }}">
+            <img src="{{ url_for('static', filename='images/spade_A.png') }}" class="card-image">
+        </a>
+        <div class="card-status">✔️</div>
+        <p style="color:#ffdddd; margin-top:5px;">Memory Flash Game</p>
+    </div>
+
+    <!-- 2 OF SPADES -->
+    <div class="card-wrapper">
+        <a href="javascript:void(0)" class="locked-card">
+            <img src="{{ url_for('static', filename='images/spade_2.png') }}" class="card-image">
+        </a>
+        <div class="card-status incomplete">✖️</div>
+        <p style="color:#888; margin-top:5px;">Coming Soon</p>
+    </div>
+
+    <!-- 3 OF SPADES -->
+    <div class="card-wrapper">
+        <a href="javascript:void(0)" class="locked-card">
+            <img src="{{ url_for('static', filename='images/spade_3.png') }}" class="card-image">
+        </a>
+        <div class="card-status incomplete">✖️</div>
+        <p style="color:#888; margin-top:5px;">Coming Soon</p>
+    </div>
+
+    <!-- 5 OF SPADES -->
+    <div class="card-wrapper">
+        <a href="javascript:void(0)" class="locked-card">
+            <img src="{{ url_for('static', filename='images/spade_5.png') }}" class="card-image">
+        </a>
+        <div class="card-status incomplete">✖️</div>
+        <p style="color:#888; margin-top:5px;">Coming Soon</p>
+    </div>
+
+</div>
+
+<a href="{{ url_for('main.play_spades') }}" class="btn card-btn" style="display:block; width:180px; margin:40px auto;">
+    ← Back to Spades Menu
+</a>
+
+{% endblock %}

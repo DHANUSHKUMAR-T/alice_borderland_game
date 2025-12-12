@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂢 Spades – Reaction Timer</h2>
+
+        <p class="game-text">
+            Click the correct box as soon as it says <b>NOW!</b><br>
+            You must react within <span style="color:#ff4444;">0.35 seconds</span>.<br>
+            Complete <b>3 rounds</b> to unlock the next card.
+        </p>
+
+        <div class="reaction-grid">
+            <div id="box-left" class="reaction-box">WAIT…</div>
+            <div id="box-right" class="reaction-box">WAIT…</div>
+        </div>
+
+        <p id="round-status" class="round-text">Round: 1 / 3</p>
+
+        <p id="result" class="result-text"></p>
+
+        <button id="start-btn" class="btn red-btn start-center">Start</button>
+
+        <div class="next-nav">
+            <a id="next-card" href="{{ url_for('main.suit_cards', suit='spades') }}"
+               class="btn card-btn" style="display:none;">Next Card →</a>
+
+            <a href="{{ url_for('main.suit_cards', suit='spades') }}" class="btn card-btn">Back</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let boxLeft = document.getElementById("box-left");
+let boxRight = document.getElementById("box-right");
+let resultText = document.getElementById("result");
+let roundStatus = document.getElementById("round-status");
+let startBtn = document.getElementById("start-btn");
+let nextCardBtn = document.getElementById("next-card");
+
+let canClick = false;
+let startTime = 0;
+
+let currentRound = 1;
+let totalTime = 0;
+let correctBox = null;
+
+function resetBoxes() {
+    boxLeft.textContent = "WAIT…";
+    boxRight.textContent = "WAIT…";
+    boxLeft.style.background = "#222";
+    boxRight.style.background = "#222";
+}
+
+startBtn.onclick = function () {
+    resultText.textContent = "";
+    startBtn.style.display = "none";
+    resetBoxes();
+
+    // Random delay 1–4 sec
+    let delay = Math.random() * 3000 + 1000;
+
+    // Choose LEFT or RIGHT randomly
+    correctBox = Math.random() < 0.5 ? "left" : "right";
+
+    setTimeout(() => {
+        let box = correctBox === "left" ? boxLeft : boxRight;
+        box.textContent = "NOW!";
+        box.style.background = "#ff2222";
+
+        startTime = performance.now();
+        canClick = true;
+    }, delay);
+};
+
+function handleClick(side) {
+    if (!canClick) {
+        resultText.textContent = "Too early! Wait for NOW!";
+        resultText.style.color = "#ff4444";
+        return;
+    }
+
+    let reactionTime = performance.now() - startTime;
+    canClick = false;
+
+    if (side === correctBox && reactionTime <= 350) {
+        resultText.textContent = "✔ " + reactionTime.toFixed(0) + " ms — Good!";
+        resultText.style.color = "#00ff66";
+
+        totalTime += reactionTime;
+
+        if (currentRound === 3) {
+            // COMPLETE GAME
+            resultText.textContent =
+                "🎉 All Rounds Complete! Total Time = " +
+                Math.round(totalTime) +
+                " ms";
+
+            nextCardBtn.style.display = "inline-block";
+            fetch("/complete/spades/2", { method: "POST" });
+        } else {
+            // NEXT ROUND
+            currentRound++;
+            roundStatus.textContent = "Round: " + currentRound + " / 3";
+            startBtn.style.display = "block";
+        }
+
+    } else {
+        resultText.textContent = "❌ Too slow! Try again.";
+        resultText.style.color = "#ff4444";
+
+        // reset the same round
+        startBtn.style.display = "block";
+    }
+}
+
+boxLeft.onclick = () => handleClick("left");
+boxRight.onclick = () => handleClick("right");
+</script>
+
+<style>
+.reaction-grid {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 20px;
+}
+
+.reaction-box {
+    width: 180px;
+    height: 150px;
+    background: #222;
+    border: 3px solid red;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.round-text {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.start-center {
+    display: block;
+    margin: 20px auto;
+}
+
+.result-text {
+    margin-top: 20px;
+    font-size: 22px;
+}
+
+.next-nav {
+    margin-top: 25px;
+}
+</style>
+
+{% endblock %}

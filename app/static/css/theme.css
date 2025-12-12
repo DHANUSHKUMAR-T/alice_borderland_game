@@ -291,6 +291,8 @@ body.dark-theme {
 /* Fix hidden Login button */
 .nav-btn.signup {
     border-color: #ff4444;
+    margin-left: -5px;   /* small left shift */
+    margin-right: 100px;  /* extra gap on right */
 }
 .nav-btn.logout {
     border-color: orange;

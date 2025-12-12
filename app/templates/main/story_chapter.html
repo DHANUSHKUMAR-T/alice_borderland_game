@@ -6,6 +6,7 @@
     <div class="story-panel">
         <h2 class="menu-title chapter-heading">{{ chapter.title.en }}</h2>
 
+        <!-- Controls -->
         <div class="story-controls">
             <label for="lang-select">Language:</label>
             <select id="lang-select">
@@ -14,19 +15,27 @@
                 <option value="te">Telugu</option>
             </select>
 
-            <button id="play-audio" class="btn red-btn">🔊 Read Aloud</button>
-            <a id="download-audio" class="btn dark-btn" style="display:none;">Download (not available)</a>
+            <button id="read-btn" class="btn red-btn">🔊 Read Aloud</button>
+            <button id="pause-btn" class="btn dark-btn">⏸ Pause</button>
         </div>
 
-        <div id="story-text" class="story-text" data-en="{{ chapter.text.en | e }}" data-ta="{{ chapter.text.ta | e }}" data-te="{{ chapter.text.te | e }}">
+        <!-- Story Content -->
+        <p id="story-text"
+           class="story-text"
+           data-en="{{ chapter.text.en | e }}"
+           data-ta="{{ chapter.text.ta | e }}"
+           data-te="{{ chapter.text.te | e }}">
             {{ chapter.text.en }}
-        </div>
+        </p>
 
+        <!-- Navigation Buttons -->
         <div class="reader-nav">
             {% if chapter.id > 1 %}
                 <a class="btn card-btn" href="{{ url_for('main.story_chapter', chapter_id=chapter.id - 1) }}">← Previous</a>
             {% endif %}
+
             <a class="btn card-btn" href="{{ url_for('main.story_index') }}">Back to Chapters</a>
+
             {% if chapter.id < 7 %}
                 <a class="btn card-btn" href="{{ url_for('main.story_chapter', chapter_id=chapter.id + 1) }}">Next →</a>
             {% endif %}
@@ -35,72 +44,7 @@
 
 </div>
 
-<script>
-/* Story Reader JS — uses SpeechSynthesis */
-(function() {
-    const langSelect = document.getElementById('lang-select');
-    const playBtn = document.getElementById('play-audio');
-    const storyTextEl = document.getElementById('story-text');
-
-    function getTextForLang(lang) {
-        return storyTextEl.getAttribute('data-' + lang) || storyTextEl.textContent;
-    }
-
-    function setStoryText(lang) {
-        const text = getTextForLang(lang);
-        storyTextEl.textContent = text;
-        // update heading
-        const heading = document.querySelector('.chapter-heading');
-        const titles = {
-            en: {{ chapter.title.en|tojson }},
-            ta: {{ chapter.title.ta|tojson }},
-            te: {{ chapter.title.te|tojson }},
-        };
-        heading.textContent = titles[lang] || titles.en;
-    }
-
-    // initial
-    setStoryText('en');
-
-    playBtn.addEventListener('click', function() {
-        const lang = langSelect.value;
-        const text = getTextForLang(lang);
-        if (!('speechSynthesis' in window)) {
-            alert('Text-to-speech not supported in this browser.');
-            return;
-        }
-
-        // cancel any ongoing speech
-        window.speechSynthesis.cancel();
-
-        const utter = new SpeechSynthesisUtterance(text);
-
-        // prefer common voice locales
-        if (lang === 'en') utter.lang = 'en-US';
-        if (lang === 'ta') utter.lang = 'ta-IN';
-        if (lang === 'te') utter.lang = 'te-IN';
-
-        // try to pick a suitable voice if available
-        const voices = window.speechSynthesis.getVoices();
-        if (voices && voices.length) {
-            const preferred = voices.find(v => v.lang && v.lang.startsWith(utter.lang.split('-')[0]));
-            if (preferred) utter.voice = preferred;
-        }
-
-        utter.rate = 1.0;
-        utter.pitch = 1.0;
-        window.speechSynthesis.speak(utter);
-    });
-
-    langSelect.addEventListener('change', function() {
-        setStoryText(this.value);
-    });
-
-    // Some browsers load voices asynchronously — ensure voices are available before play
-    window.speechSynthesis.onvoiceschanged = function() {
-        // no-op: voices will be rechecked on play
-    };
-})();
-</script>
+<!-- Load JS -->
+<script src="{{ url_for('static', filename='js/story_reader.js') }}"></script>
 
 {% endblock %}

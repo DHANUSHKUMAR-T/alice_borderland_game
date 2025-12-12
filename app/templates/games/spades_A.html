@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂡 Spades – Memory Flash Game</h2>
+
+        <p class="game-text">
+            Memorize the order of the symbols shown.  
+            They will disappear after 3 seconds.  
+            You must select the correct order before the time runs out!
+        </p>
+
+        <!-- START BUTTON -->
+        <button id="start-btn" class="btn red-btn">Start Game</button>
+
+        <!-- GAME AREA (hidden until start is clicked) -->
+        <div id="game-area" style="display:none;">
+
+            <h3 id="timer" class="timer-text">Time Left: 10s</h3>
+
+            <div id="flash-area" class="flash-area"></div>
+
+            <div id="options-area" class="options-area" style="display:none;"></div>
+
+            <p id="result" class="result-text"></p>
+
+            <!-- NEXT CARD BUTTON -->
+            <form id="complete-form" method="POST" 
+                  action="{{ url_for('main.complete_card', suit='spades', card='A') }}">
+                <button id="next-btn" type="submit" class="btn card-btn" disabled style="opacity:0.3;">
+                    Next Card →
+                </button>
+            </form>
+        </div>
+
+        <!-- BACK BUTTON -->
+        <a href="{{ url_for('main.suit_cards', suit='spades') }}" class="btn card-btn">Back</a>
+
+    </div>
+
+    <!-- FLOATING GLOWING SPADE CARD -->
+    <div class="floating-card">
+        <img src="{{ url_for('static', filename='images/spade_A.png') }}" alt="Spade A">
+    </div>
+
+</div>
+
+<script>
+/* -------------------------------
+   VARIABLES
+--------------------------------*/
+const icons = ["🔥","⭐","💀","⚡","🌙","❤️"];
+let flashOrder = [];
+let userOrder = [];
+let timer = 10;
+let interval;
+
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const flashArea = document.getElementById("flash-area");
+const optionsArea = document.getElementById("options-area");
+const result = document.getElementById("result");
+const timerText = document.getElementById("timer");
+const nextBtn = document.getElementById("next-btn");
+
+/* -------------------------------
+   START BUTTON CLICK
+--------------------------------*/
+startBtn.addEventListener("click", () => {
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+    startGame();
+});
+
+/* -------------------------------
+   START GAME FUNCTION
+--------------------------------*/
+function startGame() {
+    userOrder = [];
+    timer = 10;
+    timerText.textContent = "Time Left: 10s";
+    nextBtn.disabled = true;
+    nextBtn.style.opacity = "0.3";
+
+    flashOrder = icons.sort(() => Math.random() - 0.5).slice(0, 4);
+
+    flashArea.textContent = flashOrder.join("  ");
+
+    setTimeout(() => {
+        flashArea.textContent = "❓❓❓❓";
+        showOptions();
+        startTimer();
+    }, 3000);
+}
+
+/* -------------------------------
+   TIMER
+--------------------------------*/
+function startTimer() {
+    interval = setInterval(() => {
+        timer--;
+        timerText.textContent = `Time Left: ${timer}s`;
+
+        if (timer <= 0) {
+            clearInterval(interval);
+            failGame("⏳ Time's up! Try again.");
+        }
+    }, 1000);
+}
+
+/* -------------------------------
+   SHOW ICON OPTIONS
+--------------------------------*/
+function showOptions() {
+    optionsArea.style.display = "block";
+    optionsArea.innerHTML = "";
+
+    // Create a bigger pool: correct 4 + 4 random extra
+    let extraIcons = ["🔥","⭐","💀","⚡","🌙","❤️","🩸","🗡️","💣","🎲"];
+    
+    // Ensure extra icons do not affect the answer
+    let optionPool = [...flashOrder];
+
+    // Pick 4 random extra icons
+    let shuffledExtras = extraIcons.sort(() => Math.random() - 0.5).slice(0, 4);
+    optionPool = optionPool.concat(shuffledExtras);
+
+    // Shuffle final options
+    optionPool = optionPool.sort(() => Math.random() - 0.5);
+
+    // Display buttons
+    optionPool.forEach(icon => {
+        let btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = icon;
+
+        btn.onclick = () => {
+            userOrder.push(icon);
+            if (userOrder.length === flashOrder.length) checkAnswer();
+        };
+
+        optionsArea.appendChild(btn);
+    });
+}
+
+
+/* -------------------------------
+   CHECK ANSWER
+--------------------------------*/
+function checkAnswer() {
+    clearInterval(interval);
+
+    if (JSON.stringify(userOrder) === JSON.stringify(flashOrder)) {
+        winGame();
+    } else {
+        failGame("❌ Wrong order. Try again!");
+    }
+}
+
+/* -------------------------------
+   WIN / FAIL
+--------------------------------*/
+function winGame() {
+    result.textContent = "🎉 Correct! Well done!";
+    result.style.color = "#00ff66";
+
+    nextBtn.disabled = false;
+    nextBtn.style.opacity = "1";
+}
+
+function failGame(msg) {
+    result.textContent = msg;
+    result.style.color = "#ff3333";
+
+    setTimeout(() => {
+        result.textContent = "";
+        startGame();
+    }, 2000);
+}
+</script>
+
+<style>
+/* Flash icons */
+.flash-area {
+    font-size: 40px;
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid red;
+    border-radius: 12px;
+}
+
+/* Timer text */
+.timer-text {
+    margin-top: 10px;
+    font-size: 24px;
+    color: yellow;
+}
+
+/* Option buttons */
+.options-area {
+    margin-top: 20px;
+}
+
+.option-btn {
+    padding: 12px 15px;
+    margin: 5px;
+    font-size: 25px;
+    border-radius: 10px;
+    border: 2px solid #ff3434;
+    background: #111;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.option-btn:hover {
+    transform: scale(1.2);
+    background: #ff3434;
+}
+
+/* Floating glowing card */
+.floating-card {
+    position: absolute;
+    right: 40px;
+    top: 200px;
+    animation: floatCard 3s infinite ease-in-out;
+}
+
+.floating-card img {
+    width: 150px;
+    filter: drop-shadow(0 0 20px red);
+    animation: glowPulse 2s infinite alternate;
+}
+
+@keyframes floatCard {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes glowPulse {
+    0% { filter: drop-shadow(0 0 10px red); }
+    100% { filter: drop-shadow(0 0 30px #ff4444); }
+}
+</style>
+
+{% endblock %}

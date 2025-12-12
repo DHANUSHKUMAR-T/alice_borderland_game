@@ -1,5 +1,3 @@
-# app/story_data.py
-# Chapter data for Story Mode (English, Tamil, Telugu)
 CHAPTERS = [
     {
         "id": 1,
@@ -10,178 +8,551 @@ CHAPTERS = [
         },
         "text": {
             "en": (
-                "In the bustling city of Tokyo, three friends lived ordinary lives: "
-                "Arisu, Karube, and Chota. They shared laughter, boredom, and a sense "
-                "of drifting through life. One day, while waiting at a crowded crossing, "
-                "the world fell silent. The lights flickered and the people vanished. "
-                "The three friends found themselves trapped in an empty city — and the first warning "
-                "appeared on a phone: 'WELCOME TO THE GAME.'"
+                "Tokyo was alive with noise, neon, and endless movement—yet for Arisu, Karube, and Chota, "
+                "life felt strangely empty. Arisu drifted through each day without purpose, lost in games and "
+                "daydreams. Karube was bold and fearless but stuck in a job he didn’t care about. Chota was gentle "
+                "but trapped by responsibilities that crushed him. They were three young men searching for meaning "
+                "in a world that moved too fast for them.\n\n"
+                "On one ordinary afternoon, while standing at the Shibuya Crossing, the trio joked around to escape "
+                "the monotony. But in an instant, everything changed. The lights flickered, the world dimmed, and "
+                "an unnatural silence swallowed the city. Cars stopped. Advertisements froze mid-frame. When the "
+                "lights returned, every single person had vanished—except the three of them.\n\n"
+                "Confused and terrified, they wandered through the empty streets calling out for help. Tokyo felt "
+                "like a giant abandoned playground—silent, eerie, and endless. Then a message appeared on an LED "
+                "screen: 'WELCOME TO THE GAME.' A phone vibrated nearby, displaying an arrow pointing toward a dark "
+                "alley. That was the first time they realized something was terribly wrong. Their ordinary world was gone. "
+                "They had crossed into the Borderland."
             ),
             "ta": (
-                "பெருமகளிர் நகரமான டோக்கியோவில், மூன்று நண்பர்களும் சாதாரணமான வாழ்க்கையை நடத்தினர்: "
-                "அரிசு, கருபே மற்றும் சோடா. அவர்கள் சிரிப்பு, சோம்பல் மற்றும் வாழ்க்கையில் மயங்கும்மனத்தை பகிர்ந்தனர். "
-                "ஒரு நாள், பிஸியான சிகிச்சையில் நிற்கும்போது, உலகம் அமைதியாகிவிட்டது. விளக்குகள் மின்மினமிட்டு மக்கள் காணாமல் "
-                "ஆயிற்றனர். மூன்று நண்பர்கள் ஒரு வெறும் நகரத்தில் முடங்கினர் — ஒரு தொலைபேசியில் 'விளையாட்டிற்கு வரவேற்கிறோம்' "
-                "என்று எச்சரிக்கை தோன்றியது."
+                "ஒரு நாள் டோக்கியோ நகரம் வழக்கம்போல சத்தம், ஒளி மற்றும் ஓட்டம் நிறைந்திருந்தது. ஆனால் அரிசு, கருபே, சோடா "
+                "மூவருக்கும் வாழ்க்கை ஒருவிதமாக காலியாகத் தோன்றியது. அரிசு நோக்கம் இல்லாமல் நாட்களை கடத்திக் கொண்டிருந்தான். "
+                "கருபே தைரியசாலி, ஆனால் வளர்ச்சியில்லாத வேலையில் சிக்கியவன். சோடா நெகிழ்வானவன், ஆனால் குடும்பப் பொறுப்புகளில் "
+                "அழிக்கப்பட்டவன். அவர்கள் மூவரும் வாழ்க்கையில் அர்த்தத்தைத் தேடும் இளைஞர்கள்.\n\n"
+                "ஷிபுயா கிராஸ்சிங்கில் நின்றபோது, அவர்கள் வழக்கம்போல் நகைச்சுவை செய்து கொண்டிருந்தனர். அப்போது திடீரென, "
+                "விளக்குகள் மின்மினத்து, ஒரு அமானுஷ்ய அமைதி நகரத்தை மூடியது. கார்கள் நின்றன. விளம்பர ஒளிப்பதிவுகள் "
+                "நிறுத்தப்பட்டன. விளக்குகள் மீண்டும் வந்தபோது — மக்கள் யாரும் இல்லை. அவர்கள் மூவரே மட்டுமே இருந்தனர்.\n\n"
+                "அவர்கள் வெறுமையான தெருக்களை பதட்டத்துடன் நடைபோட்டனர். நகரம் ஒரு பாழடைந்த விளையாட்டு மைதானமாகத் "
+                "தோன்றியது — சத்தமின்றி, பயங்கரமாக. பின்னர் ஒரு திரையில் ஒரு செய்தி தோன்றியது: 'விளையாட்டிற்கு வரவேற்கிறோம்.' "
+                "ஒரு கைபேசி அதிர்ந்து ஒரு குறுகிய தெருவை நோக்கி காட்டியது. அந்த நிமிடமே, அவர்கள் உணர்ந்தனர் — "
+                "உண்மையான உலகம் மறைந்துவிட்டது. அவர்கள் ‘பாடர்லாந்து’ எனும் புதிர் உலகில் நுழைந்துவிட்டனர்."
             ),
             "te": (
-                "తీవ్రంగా తిరుగుతున్న టోక్యో నగరంలో, ముగ్గురు స్నేహితులు సాధారణ జీవితం గడిపేవారు: అరిసు, కారుబే, చోటా. "
-                "వారు నవ్వు, బోర్డమ్ మరియు జీవితం పై నిరాసక్తిని పంచుకున్నారు. ఒక రోజు, గాలివిడిభాగంలో ఉన్నపుడు, ప్రపంచం మౌనంగా మారింది. "
-                "లైట్లు మోగిపోయి ప్రజలు కనిపించకుండా నిలిచిపోయారు. ముగ్గురు స్నేహితులు ఖాళీ నగరంలో చిక్కుముగ్దులయ్యారు — ఒక ఫోన్ పై "
-                "'వెల్కమ్ టు ది గేమ్' అనే హెచ్చరిక కనిపించింది."
+                "టోక్యో నగరం శబ్దం, వెలుతురు, పరుగులు… ఇలా ఎప్పుడు లాగే జీవంతంగా ఉంది. అయితే అరిసు, కారుబే, చోటా ముగ్గురికి "
+                "జీవితం ఖాళీగా అనిపించింది. అరిసు దిశా రహితంగా రోజులు గడుపుతూ ఆటలలో, కలలలో తేలిపోయేవాడు. కారుబే ధైర్యవంతుడు, "
+                "కాని తనను ఇరుకున పెట్టే ఉద్యోగంలో చిక్కుకున్నాడు. చోటా మృదువైన వాడు, కానీ బాధ్యతలతో నలిగిపోయాడు. "
+                "అవరు ముగ్గురూ జీవితంలో అర్థం కోసం వెతుకుతున్న యువకులు.\n\n"
+                "ఒక సాధారణ రోజు షిబుయా క్రాసింగ్ వద్ద నిలబడి నవ్వుకుంటూ మాట్లాడుతుండగా, ఒక్కసారిగా పరిసరాలు మారిపోయాయి. "
+                "లైట్లు చమికాయి, నగరం ఒక అజ్ఞాత నిశ్శబ్దంలో మునిగిపోయింది. కార్లు ఆగిపోయాయి. తెరల మీద ఉన్న ప్రకటనలు నిలిచిపోయాయి. "
+                "లైట్లు తిరిగి వెలిగినప్పటికి — ఒక్క మనిషి కూడా కనిపించలేదు. ముగ్గురే మిగిలారు.\n\n"
+                "వారు భయంతో ఖాళీ వీధుల్లో నడిచారు. నగరం ఒక పాడుబడ్డ ఆట స్థలం లా అనిపించింది — నిశ్శబ్దం, భయంకరం. "
+                "అప్పుడు ఒక పెద్ద డిజిటల్ స్క్రీన్ వెలిగింది: 'WELCOME TO THE GAME'. పక్కనే ఉన్న ఫోన్ మోగి ఒక అల్లిగడ్డకు "
+                "సూచించింది. వెంటనే వారికి అర్థమైంది — వారి సాధారణ ప్రపంచం కనుమరుగైంది. వారు ‘బార్డర్ల్యాండ్’ లోకి చేరిపోయారు."
             )
         }
     },
-    {
+        {
         "id": 2,
         "title": {
             "en": "Entering the Borderland",
-            "ta": "போர்டர்லாந்தில் நுழைவு",
+            "ta": "பாடர்லாந்தில் நுழைவு",
             "te": "బార్డర్ల్యాండ్ ప్రవేశం"
         },
         "text": {
             "en": (
-                "The city looked like Tokyo but empty and dangerous. When they explored, "
-                "they learned the rules: games appeared with playing cards as signals. Every suit "
-                "meant a different kind of challenge — physical, mental, teamwork, or cunning. Lose a game and you could die. "
-                "Win and you earned a card and a few days of safety. The Borderland forced people to fight for life."
+                "The empty Tokyo felt unreal as Arisu, Karube, and Chota wandered deeper into the silent streets. "
+                "Shops were open, but no workers. Food remained warm on tables, as if people had vanished while eating. "
+                "Buses stood still with doors open. It was as though the entire population had been erased in a single second.\n\n"
+                "Seeking answers, the trio followed the arrow on the phone into a dimly lit building. Inside, a glowing "
+                "message waited: 'GAME START — DIFFICULTY: ♣ THREE. ENTRY REQUIRED.' The door locked behind them. "
+                "Their first game began.\n\n"
+                "A woman's voice echoed through speakers explaining the rules: 'CLEAR THE GAME OR FACE ELIMINATION.' "
+                "Panic rose, but survival instincts took over. The three friends realized the Borderland wasn’t just "
+                "empty—it was a world ruled by games. Every challenge used playing cards as levels. Number cards "
+                "measured difficulty; suits defined the type of trial. Clubs tested teamwork; Diamonds tested intelligence; "
+                "Hearts tested emotions; Spades tested endurance.\n\n"
+                "After barely surviving, they stumbled out of the building breathless. A laser shot from the sky, killing "
+                "a woman who tried to escape. The truth hit them hard—the Borderland was not a dream, not a glitch, "
+                "but a deadly reality. If they wanted to stay alive, they had to keep playing.\n\n"
+                "Their fear turned into determination. The Borderland was terrifying, but it awakened something inside "
+                "them: the will to survive and the need to understand why they were chosen."
             ),
             "ta": (
-                "நகரம் டோக்கியோவுக்கு போன்றே இருந்தாலும் வெறுமையாகவும் ஆபத்தானதாகவும் இருந்தது. அவர்கள் ஆராய்ந்தபோது, விதிகள் தெரிய வந்தன: "
-                "விளையாட்டுக்கள் பல நாட்களில் காசிகள் மூலம் அறிவிக்கப்பட்டன. ஒவ்வொரு சூட் வேறுவகையான சவால்களை குறிக்கிறது — உடல், மனம், குழு அல்லது மூளை. "
-                "விளையாட்டை இழந்தால் உயிரில் பாதிப்பு ஏற்படலாம். வென்றால் அட்டையைப் பெறுவீர்கள் மற்றும் சில நாட்கள் பாதுகாப்பு கிடைக்கும். போர்டர்லண்டு வாழ்வுக்காகப் போராட வைத்தது."
+                "வெறுமையான டோக்கியோவில் மேலும் மேலும் நடந்தபோது, அரிசு, கருபே, சோடா மூவருக்கும் நகரம் உண்மையல்லாமல் "
+                "தோன்றியது. கடைகள் திறந்திருந்தன, ஆனால் பணியாளர்கள் இல்லை. உணவக மேஜைகளில் சூடான உணவு அப்படியே இருந்தது—"
+                "மக்கள் சாப்பிட்டுக்கொண்டிருக்கும்போதே மறைந்துவிட்டது போல. பேருந்துகள் கதவுகள் திறந்தபடி நின்றன. "
+                "ஒரே விநாடியில் நகரம் முழுவதும் அழிந்தது போல.\n\n"
+                "அவர்கள் பதிலைத் தேடி ஒரு மங்கலான கட்டிடத்திற்கு சென்றனர். அங்கே ஒளிரும் செய்தி: "
+                "'விளையாட்டு தொடக்கம் — கடினம்: ♣ மூன்று. உள்ளே நுழைய வேண்டும்.' கதவு தானாக பூட்டப்பட்டது. "
+                "முதல் விளையாட்டு தொடங்கியது.\n\n"
+                "ஸ்பீக்கர்களில் ஒரு பெண் குரல் ஒலித்தது: 'விளையாட்டை வெல்லுங்கள் அல்லது அழிவை சந்திக்கவும்.' "
+                "பயம் அதிகரித்தது, ஆனால் உயிர் வாழும் உணர்வு மேலெழுந்தது. பாடர்லாண்டு வெறுமையான உலகமல்ல—அது "
+                "விதிகளால் நிறைந்த கொடூர உலகம். ஒவ்வொரு விளையாட்டும் அட்டைகளை நிலை அளவாகக் கொண்டது. எண் அட்டைகள் சிரமத்தைக் "
+                "குறித்தது; சூட்கள் சவாலின் வகையை நோக்கியது. கிளப்ஸ் — குழு பணி, டயமண்ட் — நுண்ணறிவு, ஹார்ட்ஸ் — உணர்ச்சி, "
+                "ஸ்பேட்ஸ் — உடல் சக்தி.\n\n"
+                "விளையாட்டில் இருந்து உயிர் தப்பி வெளியே வந்தபோது, ஒரு பெண் ஓடிச் செல்ல முயன்றார். வானில் இருந்து ஒரு லேசர் "
+                "அவளை குத்தி கொன்றது. உண்மை அவர்கள் மார்பில் விழுந்தது—பாடர்லாண்டு கனவு அல்ல, எரர் அல்ல—it was death.\n\n"
+                "அவர்கள் பயத்தை விடுத்து உறுதியை எடுத்தனர். இந்த உலகம் பயங்கரமானது, ஆனால் அது அவர்களுள் மறைந்திருந்த "
+                "வாழ்வுணர்வை எழுப்பியது."
             ),
             "te": (
-                "నగరం టోక్యోలా కనిపించినప్పటికీ ఖాళీగా, ప్రమాదకరంగా ఉంది. వారు పరిశీలించినప్పుడు, నియమాలు తెలుసుకున్నారు: "
-                "విక్టరీ కార్డులుగా ఆటలు వస్తాయి. ప్రతి సూట్ వేరే రకం సవాలు సూచిస్తుంది — శారీరక, మానసిక, బృందం లేదా వ్యూహాత్మక. ఆట పోతే మరణం తీసుకొస్తుంది. "
-                "గెలిచితే ఒక క کارت సంపాదించబడుతుంది మరియు కొంతకాలం రక్షణ కలుగుతుంది. బార్డర్ల్యాండ్ ప్రజలను జేబు కోసం పోరాడుపర్చింది."
+                "ఖాళీ టోక్యోలో లోతుగా నడుస్తూ అరిసు, కారుబే, చోటా ముగ్గురికి నగరం కలల లా అనిపించింది. దుకాణాలు తెరచి ఉన్నాయి, "
+                "కాని పనివారు ఎవరూ లేరు. రెస్టారెంట్ టేబుళ్లపై వేడి భోజనం అలాగే ఉంది—మధ్యలోనే ప్రజలు కనుమరుగైనట్లు. "
+                "బడ్లు తలుపులు తెరిచి నిశ్శబ్దంగా నిలిచాయి. క్షణంలోనే నగరం ఖాళీ అయిపోయినట్లు అనిపించింది.\n\n"
+                "ఒక ఫోన్ పై కనిపించిన బాణం వారిని ఒక చీకటి భవనానికి తీసుకెళ్లింది. లోపల ప్రకాశించే సందేశం: "
+                "'GAME START — DIFFICULTY: ♣ THREE. ENTRY REQUIRED.' తలుపు మూసుకుంది. వారి మొదటి ఆట ప్రారంభమైంది.\n\n"
+                "స్పీకర్లలో ఒక మహిళా గళం వినిపించింది: 'CLEAR THE GAME OR FACE ELIMINATION.' భయం పెరిగింది, "
+                "కాని బ్రతకాలి అనే భావం మరింత బలంగా మారింది. బార్డర్ల్యాండ్ ఒక ఖాళీ ప్రపంచం కాదు—it was a kingdom of deadly games. "
+                "ప్రతి కార్డు ఒక సవాలును సూచిస్తుంది. క్లబ్ — సమూహం పని, డైమండ్ — బుద్ధి, హార్ట్ — భావోద్వేగం, "
+                "స్పేడ్ — శారీరక పరీక్ష.\n\n"
+                "వారు కష్టపడి గేమ్ నుంచి బయటపడ్డారు. అదే సమయంలో, ఒక మహిళ పారిపోవడానికి ప్రయత్నించగా గగనం నుంచి లేజర్ ఆమెను "
+                "చంపేసింది. అప్పుడు వారిని ఝలక్ కొట్టింది—ఇది ఆట కాదు, నరకం.\n\n"
+                "భయాన్ని పక్కన పెట్టి, ముగ్గురు బ్రతకాలని నిర్ణయం తీసుకున్నారు. బార్డర్ల్యాండ్ ప్రమాదకరం, కానీ అది వారికి "
+                "లోపల దాగి ఉన్న ధైర్యాన్ని మేల్కొలిపింది."
             )
         }
     },
     {
-        "id": 3,
-        "title": {
-            "en": "Pain, Loss & New Bonds",
-            "ta": "வலி, இழப்பு மற்றும் புதிய பிணைப்புகள்",
-            "te": "వెదురు, నష్టం & కొత్త బంధాలు"
-        },
-        "text": {
-            "en": (
-                "The Borderland took its toll. Some friends were lost, and survivors changed. "
-                "Arisu, shaken by grief, met Usagi — a skilled climber who taught him to survive. "
-                "Together they formed a bond and moved forward, facing stronger and stranger games."
-            ),
-            "ta": (
-                "போர்டர்லாந்து பலன் எடுத்து கொண்டு இருந்தது. சில நண்பர்கள் உயிரிழந்தனர், மற்றவர்கள் மாறினர். "
-                "அரிசு துன்மொழியால் குழம்பியபோது, அவர் உசாகியை சந்தித்தார் — ஒரு திறமையான ஏறுபவர், அவருக்கு உயிர்வாழ்வை கற்றுத்தந்தது. "
-                "இருவரும் இணைந்து பலவீனமான மற்றும் விசித்திரமான விளையாட்டுகளை எதிர்கொண்டனர்."
-            ),
-            "te": (
-                "బార్డర్ల్యాండ్ దాని ప్రభావాన్ని చూపించింది. కొంతమందిని నష్టం తప్పననే విషయం. "
-                "అరిసు అత్యంత బాధతో కదిలినప్పుడూ, అతను ఉసహిగిని కలిశాడు — నైపుణ్యమైన ఎక్కేవారు అతనికి జీవించాలనే పాఠం నేర్పించారు. "
-                "ముఖ్యంగా వారు కలిసి బలంగా, విభిన్న ఆటలను ఎదుర్కొన్నారు."
-            )
-        }
+    "id": 3,
+    "title": {
+        "en": "Pain, Loss & New Bonds",
+        "ta": "வலி, இழப்பு மற்றும் புதிய பிணைப்புகள்",
+        "te": "వేదన, నష్టం & కొత్త బంధాలు"
     },
-    {
-        "id": 4,
-        "title": {
-            "en": "The Beach",
-            "ta": "தி பார்ச் (The Beach)",
-            "te": "ది బీచ్"
-        },
-        "text": {
-            "en": (
-                "Arisu and Usagi discovered the Beach — a community of survivors who believed "
-                "collecting all 52 cards would let them escape. The Beach became both a refuge and a trap: "
-                "people formed bonds, plotted, and fought. Greed and fear tore the place apart until it burned in chaos."
-            ),
-            "ta": (
-                "அரிசு மற்றும் உசாகி 'தி பீச்' எனப்பெயர்ந்த ஒரு காப்பீட்டு சமுதாயத்தை கண்டறிந்தனர் — 52 அட்டை அனைத்தையும் சேர்த்தால் வெளியேறும் என்று அவர்கள் நம்பினர். "
-                "பீச் இருக்கையாகவும் பூசலாகும்: மக்கள் உறவுகளை உருவாக்கினர், சதி சிந்தித்தனர் மற்றும் போராடினர். வெற்சியும் பயமும் அந்த இடத்தை அழித்தது."
-            ),
-            "te": (
-                "అరిసు మరియు ఉసహి బీచ్ ను కనుగొన్నారు — 52 కార్డులను సేకరిస్తే తప్పించుకోవచ్చు అని నమ్మిన సర్వైవర్లు కూడిగిన సముదాయం. "
-                "బీచ్ ఆశ్రయం మరియు పాశంగా మారింది: వాళ్లు బంధాలు పెట్టుకున్నారు, కుట్రలు చేశారు, పోరాటాలు జరిగాయి. దురాశ మరియు భయం చోటును కల్లోలంలో ముంచివేసాయి."
-            )
-        }
-    },
-    {
-        "id": 5,
-        "title": {
-            "en": "Face Card Games Begin",
-            "ta": "முக அட்டை விளையாட்டுகள் தொடக்கம்",
-            "te": "ఫెస్ కార్డ్ ఆటలు ప్రారంభం"
-        },
-        "text": {
-            "en": (
-                "With number cards finished, the Borderland unleashed the face cards: Jack, Queen, King. "
-                "These games were ruthless — psychological traps, war-like battles, and cruel hunts. "
-                "Players were tested to their limits and only the strongest, smartest, or luckiest survived."
-            ),
-            "ta": (
-                "எண்வார்ட் அட்டைகள் முடிவடைந்தபோது, போர்டர்லாந்து முக அட்டைகளை விடுவித்து: ஜாக், குயீன், கிங். "
-                "இந்த விளையாட்டுகள் கடுமையாக இருந்தன — மனோதத்துவக் களஞ்சியங்கள், போர் போன்ற தோற்றங்கள் மற்றும் கொடூர வேடுகள். "
-                "பிளேயர்கள் திறன்களை எல்லையின் வரையில் சவாலை பெற்றனர் மற்றும் பலர் மட்டுமே உயிர்வாழ்ந்தனர்."
-            ),
-            "te": (
-                "నంబర్ కార్డులు పూర్తైనప్పుడు, బార్డర్ల్యాండ్ ఫేస్ కార్డులను విడుదల చేసింది: జాక్, క్వీన్, కింగ్. "
-                "ఈ ఆటలు క్రూరంగా ఉన్నాయి — మానసిక దోపిడి, యుద్ధం వంటి పోరాటాలు, బాగా వేధించే వేటలు. "
-                "ప్లేయర్లు వారి పరిమితుల వరకు పరీక్షించబడ్డారు; బలం, తెలివితేటలైనవారే గెలిచారు."
-            )
-        }
-    },
-    {
-        "id": 6,
-        "title": {
-            "en": "The Final Game",
-            "ta": "கடைசி விளையாட்டு",
-            "te": "చివరి ఆట"
-        },
-        "text": {
-            "en": (
-                "At the end, Arisu and Usagi faced the Queen — a game of grief, memory, and choice. "
-                "It forced them to confront who they were and what they wanted to become. "
-                "In the end they chose trust and each other, and cleared the final test together."
-            ),
-            "ta": (
-                "இறுதியில், அரிசு மற்றும் உசாகி குயீனை எதிர்கொண்டனர் — துயரம், நினைவுகள் மற்றும் தேர்வு என்பவைகளை மையமாகக் கொண்ட ஒரு விளையாட்டு. "
-                "அது அவர்களை அவர்கள் யார் மற்றும் அவர்கள் என்ன ஆக விரும்புகின்றனர் என்பதை எதிர்கொள்ள வைக்கிறதா. "
-                "இறுதியில் அவர்கள் நம்பிக்கையும் ஒருவருக்கொருவர் என்பதையும் தேர்ந்தெடுத்தனர் மற்றும் இணைந்து கொடை செய்யப்பட்ட இறுதி சோதனையை வென்றனர்."
-            ),
-            "te": (
-                "ఎట్టకేలకు, అరిసు మరియు ఉసహి క్వీన్ని ఎదురుసూయారు — దు:ఖం, జ్ఞాపకాలు మరియు ఎంపికల ఆట. "
-                "ఇది వారిని వారు ఎవరో, ఏమయ్యాలనుకుంటున్నారో ఎదుర్కొనట్టుచేసింది. "
-                "చివరికి వారు నమ్మకాన్ని, ఒకరికొకరు ఉండటం ని ఎంచుకున్నారు మరియు చివరి పరీక్షలో కలిసి విజయం సాధించనారు."
-            )
-        }
-    },
-    {
-        "id": 7,
-        "title": {
-            "en": "The Truth of the Borderland",
-            "ta": "போர்டர்லாந்தின் உண்மை",
-            "te": "బార్డర్ల్యాండ్ యొక్క నిజం"
-        },
-        "text": {
-            "en": (
-                "When the games ended, the survivors returned to the real world and learned the truth: "
-                "a cataclysmic event had left the city in ruins and the Borderland was a space between life and death — "
-                "a near-death dream. Arisu and Usagi awoke in hospital, alive but changed. "
-                "Yet a Joker remained — a hint that another game might still be waiting."
-            ),
-            "ta": (
-                "விளையாட்டுகள் முடிந்தபோது, உயிர்விழந்தவர்கள் உண்மையான உலகிற்குத் திரும்பினர் மற்றும் உண்மையை அறிந்தனர்: "
-                "ஒரு பெரும் விபத்து நகரத்தை அழித்தது மற்றும் போர்டர்லாந்து உயிரும் மரணமும் இடையில் ஒரு இடம் — "
-                "ஒரு நெருங்கிய மரண கனவு என்பதினை உணர்ந்தனர். அரிசு மற்றும் உசாகி மருத்துவமனையில் விழித்தனர், உயிருடன் ஆனால் மாறிவிட்டனர். "
-                "ஆனாலும் ஒரு ஜோக்கர் மீண்டும் இருந்தது — மற்றொரு விளையாட்டு இருக்கலாம் என்று ஒரு குறிப்பு."
-            ),
-            "te": (
-                "ఆటలు ముగిసినప్పుడు, సర్వైవర్లు వాస్తవ ప్రపంచానికి తిరిగి వచ్చారు మరియు నిజం తెలుసుకున్నారు: "
-                "భయంకరమైన సంఘటన నగరాన్ని నేలవైపోయేలా చేసింది మరియు బార్డర్ల్యాండ్ జీవితం మరియు మరణం మధ్య ఉన్న స్థలం — "
-                "ఒక సమీప-మరణ కలవిభ్రమనని తెలుసుకున్నారు. అరిసు, ఉసహి ఆసుపత్రిలో లేచి, మారిపోయారు కానీ బతికారు. "
-                "అయితే ఒక జోకర్ మిగిలింది — మరొక ఆట ఇంకా ఎదురుచూస్తుందంటూ సంకేతం."
-            )
-        }
+    "text": {
+        "en": (
+            "The Borderland was not just dangerous — it was cruel. As Arisu, Karube, and Chota moved from one "
+            "game to another, the challenges became darker, sharper, and more psychological. People who once "
+            "stood beside them were lost in moments of fear and desperation.\n\n"
+            "One night, after barely surviving a brutal Hearts game, the three friends took shelter in a deserted convenience store. "
+            "The silence of the aisles reminded them of home — but the fear reminded them of the Borderland. "
+            "They laughed, cried, and shared memories of their lives before everything changed.\n\n"
+            "But the Borderland demanded sacrifices. Not everyone could win. Not everyone could survive.\n\n"
+            "The turning point came when Karube and Chota made a heartbreaking choice — a choice to protect Arisu. "
+            "They pushed him toward the exit while they stayed behind, knowingly facing a fate they could not escape.\n\n"
+            "Arisu watched in horror as his two closest friends — the people who gave his life meaning — disappeared in the blaze of the game’s end. "
+            "He fell to his knees, broken, ripping out a scream that echoed across the empty streets.\n\n"
+            "Lost in grief, Arisu wandered alone. He had no purpose, no strength left.\n\n"
+            "That was when he met Usagi.\n\n"
+            "Usagi, a quiet but fearless mountain climber, saw through Arisu’s pain. She taught him how to "
+            "survive, not just through strength but through clarity and focus. Together, they traveled through "
+            "the Borderland, slowly forming a bond built on trust, loss, and shared courage.\n\n"
+            "Arisu realized that even in a world of death, new connections could save a person. And with Usagi by his side, "
+            "he found a reason to keep fighting — not just to live, but to understand the truth behind the Borderland."
+        ),
+        "ta": (
+            "பாடர்லாந்து வெறும் ஆபத்தான உலகமல்ல — அது கொடூரமான உலகம். அரிசு, கருபே, சோடா மூவரும் ஒரு விளையாட்டிலிருந்து "
+            "மற்றொரு விளையாட்டிற்குச் செல்லும்போது, ஒவ்வொரு சவாலும் மேலும் இருண்டதாகவும் மனதை சோதிக்கும் விதமாகவும் மாறியது. "
+            "ஒருகாலத்தில் அருகில் இருந்தவர்கள் பயத்தாலும் துன்பத்தாலும் கண நேரத்தில் மறைந்துவிடுவார்கள்.\n\n"
+            "ஒரு கொடூரமான ஹார்ட்ஸ் விளையாட்டில் உயிர் தப்பிய பிறகு, மூவரும் ஒரு காலியான கடையில் தஞ்சமடைந்தனர். "
+            "அங்குள்ள அமைதி வீட்டைப் போன்றிருந்தது — ஆனால் உள்ளிருக்கும் பயம் பாடர்லாந்தை நினைவூட்டியது. "
+            "அவர்கள் சிரித்தனர், அழுதனர், தங்களின் பழைய வாழ்க்கையை நினைத்தனர்.\n\n"
+            "ஆனால் பாடர்லாந்து பலி கேட்கும் உலகம். அனைவரும் வெல்ல முடியாது. அனைவரும் உயிர் வாழ முடியாது.\n\n"
+            "மாறாத தருணம் வந்தது — கருபே மற்றும் சோடா அரிசுவை பாதுகாக்க இதயத்தை நொறுக்கும் முடிவை எடுத்தனர். "
+            "அரிசுவை வெளியே தள்ளி வைத்த அவர்கள், தாங்கள் தப்ப முடியாத விதியை ஏற்று உள்ளே தங்கினர்.\n\n"
+            "விளையாட்டு முடிவில் எழுந்த தீப்பொறியில் தனது சிறந்த நண்பர்கள் மறைந்து கொண்டதை அரிசு பயத்தில் பார்த்தார். "
+            "அவர் முழங்காலில் விழுந்து கத்தினார். அந்த குரல் காலியான நகரமெங்கும் எதிரொலித்தது.\n\n"
+            "துயரத்தில் மூழ்கிய அரிசு தனியாக அலைந்தார். அவருக்கு நோக்கம் இல்லை; வாழ விருப்பமும் இல்லை.\n\n"
+            "அப்போது தான் அவர் உசாகியை சந்தித்தார்.\n\n"
+            "மௌனமான, ஆனால் அஞ்சாத மலை ஏறுபவர் உசாகி, அரிசுவின் துயரத்தை உணர்ந்தார். "
+            "உயிர்வாழ்வது பலத்தால் மட்டுமல்ல — தெளிவு மற்றும் ஒருமைப்பாட்டால் என்பது அவர் கற்றுக்கொடுத்தார். "
+            "இருவரும் இணைந்து பயணித்தனர், புதிதாக நம்பிக்கை மற்றும் துணிச்சலால் கட்டிய உறவு உருவானது.\n\n"
+            "மரணம் நிறைந்த உலகில்கூட புதிய உறவுகள் மனிதனை காப்பாற்ற முடியும் என்பதை அரிசு உணர்ந்தார். "
+            "உசாகி அவருக்கு அருகில் இருந்ததால், அவர் போராட ஒரு காரணத்தை கண்டார் — "
+            "வாழ்வதற்காக மட்டுமல்ல, பாடர்லாந்தின் உண்மை கண்டறிவதற்காகவும்."
+        ),
+        "te": (
+            "బార్డర్ల్యాండ్ కేవలం ప్రమాదకరం మాత్రమే కాదు — అది క్రూరమైన ప్రపంచం. అరిసు, కారుబే, చోటా ముగ్గురు ఒక గేమ్ నుంచి "
+            "మరొక గేమ్ కి వెళ్తూ ఉండగా, ప్రతి సవాలు మరింత చీకటి, మరింత మానసిక ఒత్తిడితో కూడినదిగా మారింది. "
+            "ఒకప్పుడు పక్కన నిలిచిన వారు క్షణాల్లో భయంతో కూలిపోయేవారు.\n\n"
+            "ఒక భయంకరమైన హార్ట్ గేమ్ ని కష్టంగా పూర్తి చేసిన తర్వాత, ముగ్గురు ఖాళీ స్టోర్ లో ఆశ్రయం పొందారు. "
+            "అక్కడి నిశ్శబ్దం వారికి ఇంటిని గుర్తుచేసింది — కానీ భయం బార్డర్ల్యాండ్ ని గుర్తుచేసింది. "
+            "వారు నవ్వారు, ఏడ్చారు, పాత జ్ఞాపకాలను పంచుకున్నారు.\n\n"
+            "కాని బార్డర్ల్యాండ్ బలి తీసుకునే ప్రపంచం. అందరూ గెలవలేరు. అందరూ బ్రతకాలేరు.\n\n"
+            "మలుపు వచ్చినప్పుడు, కారుబే మరియు చోటా అరిసు కోసం హృదయ విదారక నిర్ణయం తీసుకున్నారు. "
+            "అరిసుని బయటకు నెట్టేసి, వారు లోపలే ఉండిపోయారు — తప్పించుకోలేమని తెలిసినప్పటికీ.\n\n"
+            "గేమ్ ముగిసినప్పుడు అగ్నిలో అదృశ్యమవుతున్న తమ ఇద్దరు స్నేహితులను అరిసు భయంతో చూశాడు. "
+            "అతను మోకాళ్లపై కూలి కన్నీళ్లు పెట్టుకున్నాడు. అతని కేకలు ఖాళీ నగరం మొత్తం మార్మోగాయి.\n\n"
+            "దిగులుతో ఒంటరిగా తిరుగుతున్న అరిసు కు ఇక ఆశ లేదు.\n\n"
+            "అప్పుడు అతను ఉసాహిని కలిసాడు.\n\n"
+            "నిశ్శబ్దం కానీ ధైర్యవంతురాలైన ఎక్కేవారు ఉసాహి, అరిసులోని బాదను గుర్తించింది. "
+            "బ్రతకడం అంటే కేవలం శక్తి కాదు — స్పష్టత, ధైర్యం కూడా అవసరమని ఆమె నేర్పింది. "
+            "ఇద్దరూ కలిసి ప్రయాణిస్తూ, నమ్మకం మరియు ధైర్యం మీద ఆధారపడి బంధం ఏర్పడింది.\n\n"
+            "మరణం నిండిన ప్రపంచంలో కూడా కొత్త బంధాలు మనిషిని రక్షించగలవని అరిసు గ్రహించాడు. "
+            "ఉసాహి తో కలిసి, అతను బ్రతకడానికి ఒక కారణాన్ని కనుగొన్నాడు — "
+            "జీవించటానికి మాత్రమే కాదు, బార్డర్ల్యాండ్ యొక్క నిజం తెలుసుకోవడానికి."
+        )
     }
+},
+{
+    "id": 4,
+    "title": {
+        "en": "The Beach",
+        "ta": "தி பீச்",
+        "te": "ది బీచ్"
+    },
+    "text": {
+        "en": (
+            "Arisu and Usagi eventually reached a place unlike anything they had seen in the Borderland — "
+            "a massive hotel complex by the sea, glowing with lights, music, and laughter. "
+            "It almost felt like a slice of the real world, a place untouched by the cruelty outside.\n\n"
+            "This was the Beach.\n\n"
+            "Inside lived a large community of survivors. Some were friendly, some dangerous, and others broken by the games. "
+            "But they were united by one belief: if all 52 playing cards were collected, the Borderland would release them. "
+            "To many, it was hope. To others, it was madness.\n\n"
+            "The Beach was run by a charismatic but ruthless leader named Hatter. "
+            "He believed in creating a world without rules — a place where people could live freely until "
+            "the moment they finally escaped. But beneath the surface, tensions burned like wildfire.\n\n"
+            "There were factions forming, power struggles growing, and secrets buried deep. "
+            "The Beach was not just a refuge — it was a time bomb.\n\n"
+            "Arisu and Usagi learned about the system of collecting cards, the alliances, and the betrayals. "
+            "They saw the price people paid to keep hope alive in a world designed to crush it.\n\n"
+            "But the illusion of paradise did not last.\n\n"
+            "A sudden betrayal shattered the Beach. Violence erupted, trust crumbled, "
+            "and flames rose as the once peaceful haven turned into chaos. "
+            "The survivors fought one another, desperate for control, desperate for answers.\n\n"
+            "In the end, the Beach burned — a symbol of how fragile hope could be in the Borderland.\n\n"
+            "But from its ashes came something powerful: Arisu gained knowledge about the face card dealers, "
+            "the ones truly controlling the games. And with that knowledge, his purpose grew clearer.\n\n"
+            "The journey was no longer just about survival — it was about understanding and ending the Borderland itself."
+        ),
+        "ta": (
+            "அரிசு மற்றும் உசாகி பாடர்லாந்தில் பார்த்த எந்த இடத்தையும் ஒத்திடாத ஒரு விசித்திரமான தலத்தை அடைந்தனர்— "
+            "கடற்கரையின் அருகே உள்ள மிகப்பெரிய ஹோட்டல் வளாகம், வெளிச்சம், இசை, சிரிப்பு என ஓர் இனிமையான மாயையை பேணியது. "
+            "அது நிஜ உலகத்தின் ஒரு சிறு துண்டைப் போல் உணர்த்தியது.\n\n"
+            "அதுவே — 'தி பீச்'.\n\n"
+            "இதன் உள்ளே பலர் வாழ்ந்தனர். சிலர் நட்பானவர்கள், சிலர் ஆபத்தானவர்கள், சிலர் விளையாட்டுகளால் மனம் உடைந்தவர்கள். "
+            "ஆனால் அனைவரும் நம்பிய ஒன்று இருந்தது: 52 அட்டைகளையும் சேகரித்தால் பாடர்லாந்திலிருந்து வெளியேறலாம். "
+            "சிலருக்கு அது நம்பிக்கை; சிலருக்கு அது வெறி.\n\n"
+            "பீச்சை நடத்துபவர் ஹாட்டர் — கவர்ச்சிகரமான ஆனால் கொடூரமான தலைவர். "
+            "விதிகளற்ற உலகை உருவாக்க வேண்டும் என்றும், மக்கள் சுதந்திரமாக வாழ வேண்டும் என்றும் அவர் நம்பினார். "
+            "ஆனால் அந்தச் சுவர்களுக்குள் பிளவுகள் உருவாகின.\n\n"
+            "குழுக்கள் பிரிந்தன, அதிகாரப்போர்கள் உயர்ந்தன, மறைந்த ரகசியங்கள் கொதித்தன. "
+            "இந்த இடம் பாதுகாப்பான தஞ்சம் அல்ல — வெடிக்க காத்திருக்கும் வெடிகுண்டு.\n\n"
+            "அரிசு மற்றும் உசாகி அட்டைகளை சேகரிக்கும் விதிமுறைகள், கூட்டணிகள், துரோகங்கள் அனைத்தையும் கற்றிருந்தனர். "
+            "நம்பிக்கையைப் பாதுகாக்க மக்கள் எவ்வளவு தியாகம் செய்கிறார்கள் என்பதை அவர்கள் கண்டனர்.\n\n"
+            "ஆனால் சொர்க்கத்தின் தோற்றம் நீண்டுநிலைக்கவில்லை.\n\n"
+            "திடீர் துரோகம் பீச்சை நொறுக்கியது. வன்முறை வெடித்தது; நம்பிக்கை இடிந்தது; "
+            "ஒருகாலத்தில் அமைதியாக இருந்த இடம் குழப்பத்தில் எரிந்தது.\n\n"
+            "இறுதியில் பீச் கருகியது — பாடர்லாந்தில் நம்பிக்கை எவ்வளவு நழுவக்கூடியது என்பதன் சின்னமாக.\n\n"
+            "ஆனால் அந்த சாம்பலில் இருந்து ஒரு வலிமையான உண்மை பிறந்தது: "
+            "விளையாட்டுகளை கட்டுப்படுத்தும் முக அட்டை டீலர்களைப் பற்றி அரிசு முக்கியமான தகவலை அறிந்தார். "
+            "அவரது பயணம் இனி உயிர்வாழ்வைப் பற்றியது மட்டுமல்ல — இந்த உலகின் உண்மையை கண்டறிந்து அதை முடிவுக்கு கொண்டு செல்வது பற்றியது."
+        ),
+        "te": (
+            "అరిసు మరియు ఉసాహి, బార్డర్ల్యాండ్ లో ఎప్పుడూ చూడని ప్రదేశం చేరుకున్నారు — "
+            "సముద్ర తీరానికి దగ్గరలో ఉన్న ఒక భారీ హోటల్, వెలుగులతో, సంగీతంతో, నవ్వులతో నిండిపోయి ఉంది. "
+            "అది కొంతసేపు అసలు ప్రపంచంలో ఉన్నట్టు అనిపించింది.\n\n"
+            "అదే — ‘ది బీచ్’.\n\n"
+            "అక్కడ పెద్ద సర్వైవర్ల సముదాయం నివసిస్తోంది. కొందరు స్నేహపూర్వకులు, కొందరు ప్రమాదకరులు, "
+            "మరికొందరు గేమ్ ల వలన పూర్తిగా మానసికంగా విరిగిపోయినవారు. "
+            "కానీ అందరూ ఒకే నమ్మకాన్ని పట్టుకున్నారు: 52 కార్డులను సేకరిస్తే బయటపడొచ్చు.\n\n"
+            "బీచ్ ను నడిపేది హాటర్ — ఆకర్షణీయమైన కాని క్రూర స్వభావం కలిగిన నాయకుడు. "
+            "అతను నియమాలు లేని ప్రపంచాన్ని నమ్మాడు. "
+            "కానీ లోపల, ఉద్రిక్తతలు నిప్పులా మండుతున్నాయి.\n\n"
+            "సమూహాలు విడిపోయాయి, అధికార పోరు పెరిగింది, రహస్యాలు నిశ్శబ్దంగా పాతిపెట్టబడ్డాయి. "
+            "బీచ్ నిజానికి ఆశ్రయం కాదు — అది పేలడానికి సిద్ధంగా ఉన్న బాంబు.\n\n"
+            "అరిసు మరియు ఉసాహి అక్కడి వ్యవస్థని, కార్డుల కోసం పోరాటాన్ని, "
+            "మరియు మనుషుల మధ్య జరుగుతున్న ద్రోహాలను చూశారు. "
+            "ఆశను నిలబెట్టుకోవడానికి మనుషులు ఎంతటి ధనం మరియు ప్రాణాలను ఖర్చు చేస్తున్నారో స్పష్టమైంది.\n\n"
+            "కానీ స్వర్గంలా కనిపించిన ఈ ప్రదేశం ఎక్కువకాలం నిలబడలేదు.\n\n"
+            "అకస్మాత్తుగా జరిగిన ద్రోహం బీచ్ ను ఛిన్నాభిన్నం చేసింది. హింస చెలరేగింది, నమ్మకాలు కూలిపోయాయి, "
+            "మరియు ఒకప్పుడు ప్రకాశించిన హోటల్ అగ్నిలో మునిగిపోయింది.\n\n"
+            "చివరికి, బీచ్ దగ్ధమైంది — బార్డర్ల్యాండ్ లో ఆశ ఎంత బలహీనమో చూపించే సంకేతం.\n\n"
+            "కానీ ఆ అల్లకల్లోలం నుండి ఒక కీలక నిజం బయటపడింది: "
+            "గ్యామ్ లను రహస్యంగా నియంత్రించే ఫేస్ కార్డ్ డీలర్ల గురించి అరిసు ముఖ్యమైన సమాచారాన్ని పొందాడు. "
+            "అతని ప్రయాణం ఇక బ్రతకటం కోసం మాత్రమే కాదు — "
+            "బార్డర్ల్యాండ్ యొక్క నిజం తెలుసుకుని దానిని ముగించాలని నిర్ణయం తీసుకున్నాడు."
+        )
+    }
+},
+{
+    "id": 5,
+    "title": {
+        "en": "Face Card Games Begin",
+        "ta": "முக அட்டை விளையாட்டுகள் தொடக்கம்",
+        "te": "ఫేస్ కార్డ్ ఆటలు ప్రారంభం"
+    },
+    "text": {
+        "en": (
+            "With the number card challenges finally completed, the Borderland shifted into its most dangerous phase. "
+            "The games no longer tested simple strength or intelligence — they tested the soul. "
+            "These were the Face Card Games: the Jack, the Queen, and the King.\n\n"
+            "Face card dealers were unlike anything Arisu and Usagi had faced before. "
+            "The number games felt cruel, but predictable. The face card games felt alive — "
+            "as if the Borderland itself was watching, learning, and waiting to strike.\n\n"
+            "The Jack games were designed to break unity. They tore apart friendships, forced distrust, "
+            "and exposed the darkest parts of human nature. Players fought not only the game, "
+            "but each other, desperately trying to survive.\n\n"
+            "The Queen games twisted emotion. They attacked the heart — grief, love, loyalty, and despair. "
+            "Many challengers walked in confident but collapsed under the weight of their own memories. "
+            "Some never recovered.\n\n"
+            "But the most terrifying were the Kings. These games were war. Brutal, unrelenting, merciless. "
+            "Whole groups fought for dominance, strategy, and survival. Bloodshed became common, "
+            "and every victory came at a price.\n\n"
+            "Arisu and Usagi stepped into these challenges stronger than before, shaped by pain and determined by purpose. "
+            "Every face card revealed a new truth about the Borderland — that these games were not random, "
+            "but designed to break the human spirit.\n\n"
+            "Yet through suffering, something awakened in them: resilience, connection, and clarity.\n\n"
+            "The Borderland was pushing them toward a final answer, a final confrontation. "
+            "The endgame had begun."
+        ),
+        "ta": (
+            "எண் அட்டை விளையாட்டுகள் அனைத்தும் முடிவடைந்தவுடன், பாடர்லாந்து தனது மிக ஆபத்தான கட்டத்தைத் தொடங்கியது. "
+            "இனி விளையாட்டுகள் உடல் அல்லது அறிவை மட்டும் சோதிக்கவில்லை — ஆன்மாவையே சோதித்தன. "
+            "இவை தான் 'முக அட்டை விளையாட்டுகள்': ஜாக், குயீன், கிங்.\n\n"
+            "முக அட்டை டீலர்கள் அரிசு மற்றும் உசாகி இதுவரை எதிர்கொண்ட எதையும் ஒத்திருக்கவில்லை. "
+            "எண் விளையாட்டுகள் கொடூரமாக இருந்தாலும் புரிந்துகொள்ளக்கூடியவை. "
+            "ஆனால் முக அட்டை விளையாட்டுகள் உயிரோடு இருப்பது போல உணர்த்தியது. "
+            "பாடர்லாந்தே அவர்களை கவனித்து, கற்றுக்கொண்டு, தாக்கத் தயாராக இருந்தது.\n\n"
+            "ஜாக் விளையாட்டுகள் ஒன்றுபட்ட மனதை உடைக்க வடிவமைக்கப்பட்டவை. "
+            "நட்புகளைச் சிதைத்தது, நம்பிக்கையை மாற்றியது, மனிதனின் இருண்ட உண்மைகளை வெளிக்கொணர்ந்தது. "
+            "வெற்றி பெற, மக்கள் விளையாட்டையும், ஒருவரை ஒருவர் எதிர்கொண்டு போராட வேண்டியிருந்தது.\n\n"
+            "குயீன் விளையாட்டுகள் உணர்ச்சிகளைப் புரட்டிப் போட்டன. "
+            "அவை இதயத்தைத் தாக்கின — துயரம், அன்பு, நம்பிக்கை, விரக்தி அனைத்தையும் ஆயுதமாக மாற்றின. "
+            "பலர் தன்னம்பிக்கையுடன் நுழைந்தார்கள், ஆனால் அவர்களது நினைவுகளின் பாரத்தைத் தாங்க முடியாது உடைந்தனர்.\n\n"
+            "அனைத்திலும் பயங்கரமானவை கிங் விளையாட்டுகள். "
+            "இவை யுத்தம். கொடூரம், தளர்வு அற்றது, இரக்கம் இல்லாதது. "
+            "முழு குழுக்களே ஆதிக்கத்திற்காக மோதின; திட்டம், வலிமை, பொறுமை அனைத்தும் சோதிக்கப்பட்டது. "
+            "இரத்தப்பாசறை பொதுவான ஒன்றாக மாறியது.\n\n"
+            "அரிசு மற்றும் உசாகி வலிமையுடன் இந்த கட்டத்திற்குள் நுழைந்தனர். "
+            "வலி அவர்களை மாற்றியிருந்தது, நோக்கம் அவர்களை முன்னே நடத்தினது. "
+            "ஒவ்வொரு முக அட்டையும் பாடர்லாந்தின் புதிய உண்மையை வெளிப்படுத்தியது — "
+            "இந்த உலகம் மனித ஆன்மாவை உடைக்க வடிவமைக்கப்பட்டது.\n\n"
+            "ஆனால் துன்பத்திலிருந்து அவர்கள் பெற்றது புதிய வலிமை — "
+            "தொலைந்த உறவுகள், தெளிவு, நிலைத்தன்மை.\n\n"
+            "பாடர்லாந்து அவர்களை ஒரு இறுதி உண்மைக்குத் தள்ளிக் கொண்டிருந்தது. "
+            "இறுதி المواج்ஜை தொடங்கிவிட்டது."
+        ),
+        "te": (
+            "నంబర్ కార్డ్ గేమ్స్ పూర్తయ్యాక, బార్డర్ల్యాండ్ తన అసలు రూపాన్ని చూపించింది. "
+            "ఇక ఆటలు శరీరాన్ని కాదు — మనసును, ఆత్మను పరీక్షించాయి. "
+            "ఇవి ఫేస్ కార్డ్ ఆటలు: జాక్, క్వీన్, కింగ్.\n\n"
+            "ఫేస్ కార్డ్ డీలర్లు అరిసు మరియు ఉసాహి ఇప్పటివరకు ఎదుర్కొన్న ఏ శత్రువుకూ పోలికలేదు. "
+            "నంబర్ గేమ్స్ క్రూరమైనవి, కానీ అర్థమయ్యేవి. "
+            "ఫేస్ గేమ్స్ మాత్రం జీవంతంగా కనిపించాయి — "
+            "బార్డర్ల్యాండ్ వారిని గమనిస్తూ, నేర్చుకుంటూ, దాడి చేయడానికి ఎదురుచూస్తున్నట్టుగా.\n\n"
+            "జాక్ గేమ్స్ ఏకత్వాన్ని ధ్వంసం చేస్తాయి. "
+            "స్నేహితులను విడగొడతాయి, అనుమానాలను పెంచుతాయి, "
+            "మానవ స్వభావం యొక్క అంధకారాన్ని బయటపెడతాయి. "
+            "బతికేందుకు ఆటను మాత్రమే కాదు, పరస్పరం కూడా పోరాడాలి.\n\n"
+            "క్వీన్ గేమ్స్ భావోద్వేగాలను శస్త్రంగా మార్చుతాయి. "
+            "వాటికి లక్ష్యం హృదయం — ప్రేమ, బాధ, కోల్పోవడం, నిరాశ. "
+            "చాలామంది ధైర్యంగా ప్రవేశించి, తమ జ్ఞాపకాల భారంతో జారిపడతారు.\n\n"
+            "అత్యంత భయంకరమైనవి కింగ్ గేమ్స్. "
+            "ఇవి యుద్ధములు. క్రూరమైనవి, ఆపడం లేనివి, ప్రాణాంతకమైనవి. "
+            "గుంపులు అధికారం కోసం పోరాడతాయి; ప్రణాళికలు, శక్తి, సహనం అన్నీ సరిహద్దుల వరకు పరీక్షించబడతాయి. "
+            "రక్తపాతం సాధారణమవుతుంది.\n\n"
+            "అరిసు మరియు ఉసాహి ఈ దశలోకి మారిపోయినవారుగా ప్రవేశించారు — "
+            "వేదన వారిని కఠినుల్ని చేసిందı, లక్ష్యం వారిని ముందుకు తోసింది. "
+            "ప్రతి ఫేస్ కార్డ్ బార్డర్ల్యాండ్ గురించిన కొత్త నిజాన్ని బయటపెట్టింది.\n\n"
+            "కానీ బాధ వాళ్లలో కొత్తదాన్ని మేల్కొల్పింది — "
+            "సంబంధం, స్పష్టత, ధైర్యం.\n\n"
+            "బార్డర్ల్యాండ్ వారిని ఒక చివరి المواج్జ్య వైపు నెడుతోంది. "
+            "ఎండ్‌గేమ్ ప్రారంభమైంది."
+        )
+    }
+},
+{
+    "id": 6,
+    "title": {
+        "en": "The Final Game",
+        "ta": "கடைசி விளையாட்டு",
+        "te": "చివరి ఆట"
+    },
+    "text": {
+        "en": (
+            "At last, after surviving countless trials, Arisu and Usagi reached the threshold of the final challenge. "
+            "Their bodies were bruised, their hearts exhausted, but their resolve stronger than ever. "
+            "Only one game remained — the Queen of Hearts.\n\n"
+            "Unlike the violent battles of the Kings or the psychological traps of the Jacks and Queens, "
+            "the Queen of Hearts game appeared deceptively simple. "
+            "It took place in a peaceful garden — quiet, serene, almost dreamlike. "
+            "But Arisu had learned one thing: in the Borderland, nothing peaceful stays peaceful for long.\n\n"
+            "The Queen, Mira, welcomed them with a smile that hid centuries of manipulation. "
+            "'This game,' she said, 'is about understanding your truth. Memory, grief, identity — "
+            "these are the things you must face.'\"\n\n"
+            "Arisu found himself trapped between illusions: visions of his past, his failures, his guilt. "
+            "He questioned everything — Was this world real? Were his friends alive? Was he even fighting for something meaningful?\n\n"
+            "Usagi, meanwhile, fought her own emotional war. Her loneliness, her father's death, and the fear of losing Arisu "
+            "weighed heavily on her. The Borderland was not attacking their bodies — it was attacking their hearts.\n\n"
+            "But in the chaos of memories and lies, they found each other.\n\n"
+            "\"We survive together,\" Arisu whispered.\n\n"
+            "With clarity and trust, they confronted Mira. She revealed the truth: "
+            "\"The Borderland tests your will to live. Those who give up stay here forever. "
+            "Those who choose life… return.\"\n\n"
+            "Arisu and Usagi chose life — together. "
+            "The garden faded, the world dissolved, and the final game was cleared.\n\n"
+            "Light returned.\n\n"
+            "And the Borderland prepared to show its final truth."
+        ),
+        "ta": (
+            "நீண்ட சோதனைகளின் பின், அரிசு மற்றும் உசாகி இறுதி விளையாட்டின் வாசலில் வந்தடைந்தனர். "
+            "அவர்களின் உடல்கள் காயங்களால் நிரம்பியிருந்தாலும், மனங்கள் சோர்வடைந்திருந்தாலும், "
+            "நின்றுவிடாமல் முன்னேற வேண்டிய முடிவு இன்னும் வலுவாக இருந்தது. "
+            "மீதமிருந்த ஒரே ஒரு விளையாட்டு — 'ஹார்ட்ஸ் ராணி'.\n\n"
+            "கிங்களின் கொடூரமான போர்களைப் போலவும், ஜாக் மற்றும் குயீன் விளையாட்டுகளின் மனச்சோதனைகள்போலவும் இல்லை. "
+            "ஹார்ட்ஸ் ராணியின் விளையாட்டு எளிமையானது போல தோன்றியது. "
+            "அழகான தோட்டத்தில் அமைதியாக நடந்தது — கனவு போல. "
+            "ஆனால் பாடர்லாந்தில் அமைதி நீண்ட நேரம் நிலைநிறுத்தாது என்பதை அரிசு நன்றாகவே அறிந்தார்.\n\n"
+            "ராணி மீரா ஒரு மர்மமான புன்னகையுடன் அவர்களை வரவேற்றார். "
+            "\"இந்த விளையாட்டு உங்கள் உண்மையைப் புரிந்து கொள்ளும் சோதனை. நினைவுகள், துயரம், அடையாளம்… "
+            "இவை அனைத்தையும் நீங்கள் எதிர்கொள்ள வேண்டும்,\" என்றார்.\n\n"
+            "அரிசு தனது கடந்த காலத்துடன் போராடினார் — தோல்விகள், குற்ற உணர்வு, தனிமை. "
+            "அவர் தன்னிடமே கேள்வி எழுப்பினார்: இந்த உலகம் உண்மையா? "
+            "அவரது நண்பர்கள் ஏதேனும் உயிருடன் உள்ளனரா? "
+            "அவர் போராடிக் கொண்டிருப்பதற்கு அர்த்தமே இருக்கிறதா?\n\n"
+            "உசாகியும் தனது உணர்ச்சிகளுடனான போரில் சிக்கினார் — "
+            "தந்தையின் மரணம், தனிமை, மற்றும் அரிசுவை இழக்க வேண்டிய பயம். "
+            "பாடர்லாந்து அவர்களின் உடலை தாக்கவில்லை — மனத்தைத் தாக்கியது.\n\n"
+            "ஆனால் அனைத்து குழப்பங்களிலும் அவர்கள் ஒருவருக்கொருவர் துணைநின்றனர்.\n\n"
+            "\"நாம் ஒன்றாகவே உயிர்வாழ்வோம்,\" என அரிசு மெதுவாகச் சொன்னார்.\n\n"
+            "அந்த நம்பிக்கையுடனும் தெளிவுடனும் அவர்கள் மீராவை எதிர்கொண்டனர். "
+            "மீரா உண்மையை வெளிப்படுத்தினார்:\n\n"
+            "\"பாடர்லாந்து உங்கள் வாழ விருப்பத்தை சோதிக்கிறது. "
+            "விட்டு விடுபவர்கள் எப்போதும் இங்கேயே நிற்பார்கள். "
+            "வாழ்வைத் தேர்ந்தெடுப்பவர்கள்… திரும்புவார்கள்.\"\n\n"
+            "அரிசு மற்றும் உசாகி வாழ்க்கையைத் தேர்ந்தெடுத்தனர் — ஒன்றாக. "
+            "தோட்டம் மறைந்தது, உலகம் கரைந்தது, இறுதி விளையாட்டு வெற்றிகரமாக முடிவடைந்தது.\n\n"
+            "ஒளி திரும்பியது.\n\n"
+            "மற்றும் பாடர்லாந்தின் இறுதி உண்மை வெளிப்படத் தயாரானது."
+        ),
+        "te": (
+            "చాలా పరీక్షలను ఎదుర్కొన్న తరువాత, అరిసు మరియు ఉసాహి చివరి ఆట ముందు నిలబడ్డారు. "
+            "వారి శరీరాలు గాయాలతో నిండిపోయి, హృదయాలు అలసిపోయినా, "
+            "వారి సంకల్పం మాత్రం మరింత బలంగా మారింది. "
+            "మిగిలింది ఒక్క ఆట — హార్ట్స్ క్వీన్.\n\n"
+            "కింగ్స్ యొక్క యుద్ధాల మాదిరిగానో, జాక్ మరియు క్వీన్ గేమ్స్ మాదిరిగానో కాదు. "
+            "హార్ట్స్ క్వీన్ ఆట చాలా సింపుల్‌గా కనిపించింది. "
+            "ఒక అందమైన తోటలో, నిశ్శబ్దంగా, ప్రశాంతంగా. "
+            "కానీ బార్డర్ల్యాండ్‌లో ఏమి ప్రశాంతంగా కనిపించినా, అది ప్రమాదం లోతులో దాగి ఉంటుంది.\n\n"
+            "క్వీన్ మీరా చిరునవ్వుతో వారిని స్వాగతించింది. "
+            "\"ఈ ఆట మీ నిజాన్ని తెలుసుకోవడం కోసం,\" ఆమె చెప్పింది. "
+            "\"జ్ఞాపకాలు, బాధ, మీరెవరో — ఇవే మీ సవాళ్లు.\"\n\n"
+            "అరిసు తన గతంతో యుద్ధం చేశాడు — తన తప్పులు, తన నెపాలు, తన ఒంటరితనం. "
+            "అతను తనను తాను ప్రశ్నించాడు: ఈ ప్రపంచం నిజమా? "
+            "తన స్నేహితులు ఎక్కడ? "
+            "తాను ఎందుకు పోరాడుతున్నాడు?\n\n"
+            "ఉసాహి కూడా తన భావోద్వేగాలతో యుద్ధం చేసింది — "
+            "తండ్రి మరణం, ఒంటరితనం, అరిసును కోల్పోతాననే భయం. "
+            "బార్డర్ల్యాండ్ వారి శరీరాలను కాదు — హృదయాలను దాడి చేసింది.\n\n"
+            "కానీ అన్ని మోసాలు, జ్ఞాపకాల మధ్యలో వారు ఒకరినొకరు కనుగొన్నారు.\n\n"
+            "\"మనిద్దరం కలిసి బతుకుదాం,\" అరిసు మెల్లగా అన్నాడు.\n\n"
+            "ఆ ధైర్యంతో వారు మీరాను ఎదుర్కొన్నారు. ఆమె నిజాన్ని చెప్పింది:\n\n"
+            "\"బార్డర్ల్యాండ్ మీ జీవించే సంకల్పాన్ని పరీక్షిస్తుంది. "
+            "వదిలేసేవారు ఇక్కడే ఉంటారు. "
+            "జీవితాన్ని ఎంచుకునేవారు… తిరిగి వెళ్తారు.\"\n\n"
+            "అరిసు మరియు ఉసాహి జీవితం ఎంచుకున్నారు — కలిసి. "
+            "తోట కరిగిపోయింది, ప్రపంచం కరుగుతూ పోయింది, చివరి ఆట పూర్తయింది.\n\n"
+            "ప్రకాశం తిరిగి వచ్చింది.\n\n"
+            "మరియు బార్డర్ల్యాండ్ తన చివరి నిజాన్ని చూపడానికి సిద్ధమైంది."
+        )
+    }
+},
+{
+    "id": 7,
+    "title": {
+        "en": "The Truth of the Borderland",
+        "ta": "பாடர்லாந்தின் உண்மை",
+        "te": "బార్డర్ల్యాండ్ యొక్క నిజం"
+    },
+    "text": {
+        "en": (
+            "When the final game ended, the Borderland began to collapse like fading smoke. "
+            "The skies that once burned with danger softened, the streets cracked apart, and the quiet city dissolved "
+            "into a blinding white light. Arisu and Usagi stood together, unsure of whether they were dying, waking, "
+            "or simply stepping into another unknown dimension.\n\n"
+            "As the world fell away, fragments of memory flooded Arisu’s mind. A deafening sound… a blinding flash… "
+            "a meteor shower striking Tokyo. Millions of lives ended in an instant. In that moment between life and death, "
+            "every soul hovered — and the Borderland formed.\n\n"
+            "It was not a punishment, not a parallel world, not a game created by humans. "
+            "It was a place where dying minds were given a choice: fight for life, or surrender to death.\n\n"
+            "Arisu realized the truth: everyone he had met in the Borderland — friends, enemies, strangers — "
+            "had been victims of the same catastrophe. Their games, their fear, their desperate will to survive were "
+            "reflections of their own hearts.\n\n"
+            "Usagi reached for his hand. \"If we survived this… then we were meant to,\" she whispered.\n\n"
+            "The white light swallowed them.\n\n"
+            "Arisu opened his eyes in a hospital bed, surrounded by doctors. Machines beeped softly. "
+            "He was alive. Usagi lay in another bed nearby — also alive. They didn’t remember everything clearly, "
+            "but they felt something familiar the moment they looked at each other.\n\n"
+            "\"Have we met before?\" Usagi asked softly.\n\n"
+            "Arisu smiled faintly. \"Maybe in another world.\"\n\n"
+            "Life in Tokyo continued, rebuilt from tragedy. People moved on, unaware of the silent war that had taken place "
+            "between life and death.\n\n"
+            "But on a table outside, a deck of cards was scattered by the wind. "
+            "All the cards were ordinary — except one.\n\n"
+            "The Joker.\n\n"
+            "It flipped once in the breeze, almost as if winking.\n\n"
+            "A silent reminder that the game… may not be over."
+        ),
+        "ta": (
+            "இறுதி விளையாட்டு முடிந்தவுடன் பாடர்லாந்து பனி பொழிந்தது போல் கரையத் தொடங்கியது. "
+            "ஆபத்தால் எரிந்த வானம் மெதுவாக சாந்தமானது, தெருக்கள் சிதறின, நகரம் முழுவதும் வெள்ளை ஒளியாக கரைந்தது. "
+            "அரிசு மற்றும் உசாகி ஒன்றாக நின்றனர் — இறக்கிறார்களா, விழிக்கிறார்களா, அல்லது இன்னொரு பரிமாணத்திற்குள் நுழைகிறார்களா "
+            "என்று கூட தெரியவில்லை.\n\n"
+            "உலகம் சிதறிக்கொண்டிருக்கும்போது, அரிசுவின் நினைவுகள் வெள்ளம் போல் திரும்பிவந்தன. ஒரு குரத்தமான சத்தம்… "
+            "ஒரு பிளவுபடுத்தும் ஒளி… டோக்கியோ மீது விழும் விண்கல் மழை. "
+            "ஒரு நொடியில் கோடிக்கணக்கான உயிர்கள் அணைந்தன. "
+            "அந்த உயிரும் மரணமும் இடைப்பட்ட நேரத்தில் — பாடர்லாந்து உருவானது.\n\n"
+            "அது தண்டனை அல்ல. அது மாயாஜால உலகம் அல்ல. "
+            "மனிதர்கள் உருவாக்கிய விளையாட்டும் அல்ல. "
+            "அது இறப்பின் நொடியில் இருக்கும் உள்ளங்கள் ஒரு தேர்வு செய்ய அனுமதிக்கப்பட்ட இடம் — "
+            "வாழ்வுக்காக போராடவா, அல்லது மரணத்திற்கு ஒப்படைக்கவா.\n\n"
+            "அரிசு உண்மையை உணர்ந்தார்: பாடர்லாந்தில் அவர் சந்தித்த அனைவரும் — நண்பர்கள், எதிரிகள், அந்நியர்கள் — "
+            "அதே பேரழிவின் பலிகளே. அவர்கள் விளையாடிய விளையாட்டுகள், பயம், போராட்டம் — "
+            "அவர்களது மனதின் பிரதிபலிப்புகள்.\n\n"
+            "உசாகி மெதுவாக அவரது கையை பிடித்தார். \"நாம் உயிர் பிழைத்திருந்தால்… அது நியதியாகத்தான்,\" என்றார்.\n\n"
+            "வெள்ளை ஒளி அவர்களை முழுவதும் விழுங்கியது.\n\n"
+            "அரிசு கண்களைத் திறந்தபோது அவர் மருத்துவமனையில் இருந்தார். சத்தமின்றி மின்னும் இயந்திரங்கள், "
+            "சுற்றி ஓடும் மருத்துவர்கள். அவர் உயிருடன் இருந்தார். "
+            "உசாகியும் அருகில் உள்ள படுக்கையில் விழித்தார் — அவரும் உயிருடன். "
+            "அவர்கள் அனைத்தையும் தெளிவாக நினைவில் கொள்ளவில்லை, "
+            "ஆனால் ஒருவரை ஒருவர் பார்த்தவுடன், எங்கோ பார்த்தது போல ஒரு உணர்வு இருந்தது.\n\n"
+            "\"நம்மை முன்பே சந்தித்திருக்கிறோமா?\" உசாகி கேட்டார்.\n\n"
+            "அரிசு மெதுவாக சிரித்தார். \"வேரு உலகத்தில் இருக்கலாம்.\"\n\n"
+            "டோக்கியோ மீண்டும் எழுந்தது. மக்கள் வாழ்ந்தார்கள். "
+            "ஆனால் உயிரும் மரணமும் இடையிலான அமைதியான போராட்டத்தை யாரும் அறியவில்லை.\n\n"
+            "அந்த நேரத்தில், வெளியில் ஒரு மேசையில் ஒரு அட்டைக்கட்டு காற்றில் சிதறிக் கிடந்தது. "
+            "அனைத்து அட்டைகளும் சாதாரணம் — ஒன்றைத் தவிர.\n\n"
+            "ஜோக்கர்.\n\n"
+            "அது காற்றில் ஒருமுறை திரும்பியது — கண் சிமிட்டுவது போல.\n\n"
+            "ஒரு மௌன எச்சரிக்கை:\n\n"
+            "விளையாட்டு… இன்னும் முடிவடையாமல் இருக்கலாம்."
+        ),
+        "te": (
+            "చివరి ఆట ముగిసిన వెంటనే, బార్డర్ల్యాండ్ పొగలా కరిగిపోవడం ప్రారంభించింది. "
+            "ఒకప్పుడు ప్రమాదంతో ఎర్రగా మెరిసిన ఆకాశం నెమ్మదిగా మెత్తబడింది. "
+            "వీధులు చీలిపోయాయి. నగరం మొత్తం తెల్లని కాంతిగా కరిగిపోయింది. "
+            "అరిసు మరియు ఉసాహి కలిసి నిలబడ్డారు — వారు మరణిస్తున్నారో, కలగంటున్నారో, లేదా మరో ప్రపంచంలోకి అడుగుపెడుతున్నారో తెలియక.\n\n"
+            "ప్రపంచం విచ్ఛిన్నమవుతున్నప్పుడు, అరిసు జ్ఞాపకాలు వరదలా తిరిగి వచ్చాయి. "
+            "ఒక భారీ శబ్దం… ఒక అంధకారకమైన వెలుగు… టోక్యోపై పడిన మీటియర్ వర్షం. "
+            "ఒక క్షణంలోనే లక్షలాది ప్రజలు మరణించారు. "
+            "ఆ జీవితం-మరణం మధ్యలో — బార్డర్ల్యాండ్ పుట్టింది.\n\n"
+            "అది శిక్ష కాదు. అది మరొక లోకం కాదు. "
+            "మనుషులు సృష్టించిన ఆట కూడా కాదు. "
+            "ఇది మరణ అంచుకు చేరిన ఆత్మలకు ఇచ్చిన ఒక అవకాశం — "
+            "జీవితం కోసం పోరాడాలా, లేక వదిలేయాలా అనే నిర్ణయం.\n\n"
+            "అరిసు తెలుసుకున్నాడు: బార్డర్ల్యాండ్‌లో అతను కలిసిన ప్రతి వ్యక్తి — స్నేహితుడు, శత్రువు, అపరిచితుడు — "
+            "అదే విషాద ఘటనలో చిక్కుకున్నవారే. "
+            "వారి భయాలు, వారి ఆటలు, వారి పోరాటం — "
+            "వారి హృదయాల ప్రతిబింబమే.\n\n"
+            "ఉసాహి అతని చెయ్యిని పట్టుకుంది. \"మనిద్దరం బతికేసి ఉంటే… అది అనవసరం కాదు,\" అని ఆమె నెమ్మదిగా చెప్పింది.\n\n"
+            "తెల్లని కాంతి వారిని పూర్తిగా నింపేసింది.\n\n"
+            "అరిసు కళ్లు తెరిచాడు — అతను ఆసుపత్రిలో ఉన్నాడు. యంత్రాలు మెల్లిగా బీప్ చేస్తున్నాయి. "
+            "అతను బ్రతికే ఉన్నాడు. ఉసాహి మరో మంచం మీద — ఆమె కూడా బ్రతికింది. "
+            "వారికి అన్నీ గుర్తులేకపోయినా, ఒకరిని చూసిన వెంటనే ఏదో తెలియని అనుబంధం కలిగింది.\n\n"
+            "\"మనిద్దరం ముందే కలిశామా?\" ఉసాహి అడిగింది.\n\n"
+            "అరిసు స్వల్పంగా నవ్వాడు. \"బహుశా… వేరే ప్రపంచంలో.\"\n\n"
+            "టోక్యో धीरेగా పునరుద్ధరించబడింది. ప్రజలు తిరిగి తమ జీవితాలకు చేరుకున్నారు — "
+            "కానీ జీవితం మరియు మరణం మధ్య జరిగిన మౌనయుద్ధం వారికి తెలియదు.\n\n"
+            "బయట ఒక బల్ల మీద ఒక కార్డ్ డెక్ గాలిలో చెల్లాచెదురై పడ్డది. "
+            "అన్ని కార్డులు సాధారణమే — ఒకటి తప్ప.\n\n"
+            "జోకర్.\n\n"
+            "అది గాలిలో ఒక్కసారి తిరిగింది — కన్నుగీళ్లు వేసినట్టుగా.\n\n"
+            "ఒక నిశ్శబ్ద హెచ్చరిక:\n\n"
+            "ఆట… ఇంకా పూర్తికాలేదు."
+        )
+    }
+}
 ]
+
+

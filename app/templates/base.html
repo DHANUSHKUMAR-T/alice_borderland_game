@@ -12,12 +12,19 @@
 
     <div class="blood-overlay"></div>
     <div class="grunge-overlay"></div>
+     <!-- BACKGROUND AUDIO -->
+     <audio id="bg-music" src="{{ url_for('static', filename='audio/borderland_theme.mp3') }}" autoplay loop></audio>
+
+
+    <!-- AUDIO TOGGLE BUTTON -->
+    <button id="audio-toggle" class="audio-btn">🔊</button>
+
 
     <!-- TOP NAV BAR -->
     <div class="top-nav">
 
         <div class="nav-left">
-            <h1 class="title">ALICE BORDERLAND GAME</h1>
+            <h1 class="title">ALICE IN BORDERLAND GAME</h1>
         </div>
 
         <div class="nav-right">
@@ -35,6 +42,7 @@
     <main class="center-content">
         {% block content %}{% endblock %}
     </main>
+    <script src="{{ url_for('static', filename='js/audio.js') }}"></script>
 
 </body>
 </html>
