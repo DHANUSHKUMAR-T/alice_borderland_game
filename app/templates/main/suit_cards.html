@@ -23,18 +23,26 @@
         {% set suit_code = suit_map[suit] %}
         {% set img_url = "https://deckofcardsapi.com/static/img/" + rank + suit_code + ".png" %}
 
-        <a class="card-tile"
-           href="{{ url_for('main.complete_card', suit=suit, card=card) }}">
+        <div class="card-wrapper">
 
-            <img src="{{ img_url }}" class="card-image">
+            <a class="card-tile"
+               href="{{ url_for('main.game_page', suit=suit, card=card) }}">
+                <img src="{{ img_url }}" class="card-image">
+            </a>
 
-        </a>
+            {% if done %}
+                <div class="card-status done">✔️</div>
+            {% else %}
+                <div class="card-status incomplete">✖️</div>
+            {% endif %}
+
+        </div>
 
     {% endfor %}
 
 </div>
 
-<!-- BOTTOM RIGHT FACE CARD BUTTON -->
+<!-- FIXED BOTTOM RIGHT BUTTON -->
 <div class="face-card-container">
     {% if all_done %}
         <a class="face-card-btn unlocked" href="{{ url_for('main.face_cards', suit=suit) }}">

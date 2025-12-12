@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request,abort
 from flask_login import login_required, current_user
 from app.models import GameProgress
 from app.games.card_engine import CARDS, SUITS, card_completed, check_phase_two_ready, mark_card_completed
 from app import db
+from app.story_data import CHAPTERS
+
 
 main = Blueprint("main", __name__)
 
@@ -24,17 +26,37 @@ def dashboard():
     return render_template("main/dashboard.html", title="Dashboard")
 
 
-# ---------------------------
-# STORY PAGE
-# ---------------------------
+# at top of main/routes.py add:
+from flask import Blueprint, render_template, redirect, url_for, request, abort
+from flask_login import login_required, current_user
+from app.story_data import CHAPTERS
+
+# ... (rest of file) ...
+
+# Story index (list of chapters)
 @main.route("/story")
 @login_required
-def story():
-    return render_template("main/story.html", title="Story")
+def story_index():
+    # pass chapter list (only id & titles)
+    chapters = [
+        {"id": c["id"], "title": c["title"]["en"]} for c in CHAPTERS
+    ]
+    return render_template("main/story_index.html", chapters=chapters, title="Story Mode")
+
+# Chapter page (single template used for all chapters)
+@main.route("/story/<int:chapter_id>")
+@login_required
+def story_chapter(chapter_id):
+    chapter = next((c for c in CHAPTERS if c["id"] == chapter_id), None)
+    if not chapter:
+        abort(404)
+    # pass english text by default; template will select language via JS
+    return render_template("main/story_chapter.html", chapter=chapter, title=chapter["title"]["en"])
+
 
 
 # ---------------------------
-# PLAY GAME main page (Suit selection)
+# PLAY PAGE (Suit Selection)
 # ---------------------------
 @main.route("/play")
 @login_required
@@ -49,7 +71,7 @@ def play():
 
 
 # ---------------------------
-# PHASE 1: LIST CARDS FOR A SUIT
+# PHASE 1: CARDS FOR A SUIT
 # ---------------------------
 @main.route("/play/<suit>")
 @login_required
@@ -60,25 +82,21 @@ def suit_cards(suit):
 
     progress = current_user.progress
 
-    # Build card → completed dictionary
-    cards_status = {}
-    for card in CARDS:
-        cards_status[card] = card_completed(progress, suit, card)
+    cards_status = {card: card_completed(progress, suit, card) for card in CARDS}
 
-    # Check if all A–10 are completed
     all_done = all(cards_status[c] for c in CARDS)
 
     return render_template(
         "main/suit_cards.html",
         suit=suit,
         cards=cards_status,
-        all_done=all_done,      # 🔥 Needed for Face-Card button unlock
+        all_done=all_done,
         title=f"{suit.title()} Cards"
     )
 
 
 # ---------------------------
-# LOAD INDIVIDUAL GAME PAGE
+# PHASE 1 GAME PAGE
 # ---------------------------
 @main.route("/game/<suit>/<card>")
 @login_required
@@ -96,7 +114,7 @@ def game_page(suit, card):
 
 
 # ---------------------------
-# MARK CARD COMPLETED
+# MARK A CARD COMPLETED
 # ---------------------------
 @main.route("/complete/<suit>/<card>", methods=["POST"])
 @login_required
@@ -106,12 +124,10 @@ def complete_card(suit, card):
         return redirect(url_for("main.play"))
 
     progress = current_user.progress
-
-    # Mark the card as completed
     mark_card_completed(progress, suit, card)
     db.session.commit()
 
-    # If all cards of ALL suits are done, unlock Phase 2
+    # Unlock Phase 2 if all A–10 of all suits are finished
     if check_phase_two_ready(progress):
         progress.phase = 2
         db.session.commit()
@@ -120,7 +136,7 @@ def complete_card(suit, card):
 
 
 # ---------------------------
-# FACE CARDS PAGE (Phase 2)
+# PHASE 2: FACE CARDS PAGE
 # ---------------------------
 @main.route("/face-cards/<suit>")
 @login_required
@@ -128,7 +144,7 @@ def face_cards(suit):
 
     progress = current_user.progress
 
-    # 🔒 Block access if Phase 1 is not completed
+    # 🔒 If Phase 1 not completed → block access
     if progress.phase < 2:
         return redirect(url_for("main.suit_cards", suit=suit))
 
@@ -139,4 +155,22 @@ def face_cards(suit):
         suit=suit,
         cards=face_cards,
         title=f"{suit.title()} Face Cards"
+    )
+
+
+# ---------------------------
+# PHASE 2 FACE CARD GAME PAGE
+# ---------------------------
+@main.route("/face-game/<suit>/<card>")
+@login_required
+def face_game_page(suit, card):
+
+    if card not in ["J", "Q", "K"]:
+        return redirect(url_for("main.face_cards", suit=suit))
+
+    return render_template(
+        "games/face_game.html",
+        suit=suit,
+        card=card,
+        title=f"{suit.title()} {card}"
     )

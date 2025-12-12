@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="menu-title">{{ suit|title }} — {{ card }}</h2>
+
+<div class="game-container">
+
+    <div class="game-card-display">
+        {% set suit_map = {
+            "spades": "S",
+            "hearts": "H",
+            "diamonds": "D",
+            "clubs": "C"
+        } %}
+        
+        {% set img_url = "https://deckofcardsapi.com/static/img/" + card + suit_map[suit] + ".png" %}
+
+        <img src="{{ img_url }}" class="card-image big">
+
+        <p class="game-text">
+            You reached the {{ card }} challenge.  
+            This is a **Face Card Tier Game** — expect difficulty to rise.
+        </p>
+
+        <form method="POST" action="#">
+            <button class="btn red-btn large-btn">Complete {{ card }} Challenge</button>
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

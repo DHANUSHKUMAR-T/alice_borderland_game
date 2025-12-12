@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="menu-title">{{ suit|title }} — Face Cards (Phase 2)</h2>
+
+{% set suit_map = {
+    "spades": "S",
+    "hearts": "H",
+    "diamonds": "D",
+    "clubs": "C"
+} %}
+
+<div class="cards-grid">
+
+    {% for card in ["J", "Q", "K"] %}
+
+        {% set suit_code = suit_map[suit] %}
+        {% set img_url = "https://deckofcardsapi.com/static/img/" + card + suit_code + ".png" %}
+
+        <a class="face-card-tile" href="{{ url_for('main.face_game_page', suit=suit, card=card) }}">
+            <img src="{{ img_url }}" class="card-image face" alt="{{ card }}">
+            <div class="face-label">{{ card }}</div>
+        </a>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="story-index-container">
+    <h2 class="menu-title">STORY MODE</h2>
+
+    <div class="chapter-list">
+        {% for ch in chapters %}
+            <a class="chapter-card" href="{{ url_for('main.story_chapter', chapter_id=ch.id) }}">
+                <div class="chapter-title">Chapter {{ ch.id }}</div>
+                <div class="chapter-sub">{{ ch.title }}</div>
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
