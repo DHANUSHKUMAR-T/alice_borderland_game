@@ -129,8 +129,35 @@ def spades_3():
 def spades_4():
     return render_template("games/spades_4.html", title="Spades 4 – Big Even/Odd Finder")
 
+@main.route("/game/spades/5")
+@login_required
+def spades_5():
+    return render_template("games/spades_5.html",
+                           title="Spades 5 – Color Decision Game")
 
+@main.route("/game/hearts/A")
+@login_required
+def hearts_A():
+    return render_template("games/hearts_A.html",
+                           title="hearts A – Emotion Match")
+    
+@main.route("/game/hearts/2")
+@login_required
+def hearts_2():
+    return render_template("games/hearts_2.html",
+                           title="hearts 2 – Trust or Trap")
 
+@main.route("/game/hearts/3")
+@login_required
+def hearts_3():
+    return render_template("games/hearts_3.html",
+                           title="hearts 3 – Heartbeat Rhythm")
+    
+@main.route("/game/hearts/4")
+@login_required
+def hearts_4():
+    return render_template("games/hearts_4.html",
+                           title="hearts 4 – HMoral Choice")
 
 
 # ---------------------------
