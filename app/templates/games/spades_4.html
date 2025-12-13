@@ -3,26 +3,45 @@
 
 <div class="game-container">
 
-    <h2 class="menu-title">🂤 Spades – Big Even / Odd Finder</h2>
-    <p class="game-text">Choose the correct number based on the instruction!</p>
+    <div class="game-card-display">
 
-    <div id="instruction" class="instruction-text"></div>
+        <h2 class="menu-title">🂤 Spades 4 – Big Even / Odd Finder</h2>
 
-    <div id="numbers" class="numbers-box"></div>
+        <p class="game-text">
+            Choose the correct number based on the instruction!
+        </p>
 
-    <p id="result" class="result-text"></p>
+        <div id="instruction" class="instruction-text"></div>
+        <p id="timer" class="timer-text">Time Left: 6s</p>
 
-    <!-- BUTTON ROW LIKE A,2,3 STYLE -->
-    <div class="button-row">
-        <button id="start-btn" class="btn red-btn">Start Game</button>
+        <div id="numbers" class="numbers-box"></div>
 
-        <a id="next-btn" 
-           href="{{ url_for('main.game_page', suit='spades', card='5') }}" 
-           class="btn card-btn" 
-           style="display:none;">Next Card →</a>
+        <p id="result" class="result-text"></p>
 
-        <a href="{{ url_for('main.suit_cards', suit='spades') }}" 
-           class="btn card-btn">Back</a>
+        <!-- BUTTON ROW (A / 2 / 3 STYLE) -->
+        <div class="button-row">
+            <button id="start-btn" class="btn red-btn">Start Game</button>
+
+            <a id="next-btn"
+            href="{{ url_for('main.suit_cards', suit='spades') }}"
+               class="btn card-btn"
+               style="display:none;">
+               Next Card →
+            </a>
+
+            <a href="{{ url_for('main.suit_cards', suit='spades') }}"
+               class="btn card-btn">
+               Back
+            </a>
+        </div>
+
+    </div>
+
+    <!-- FLOATING GLOWING SPADE 4 CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/4S.png"
+             class="card-image glow-float"
+             alt="Spades 4">
     </div>
 
 </div>
@@ -33,53 +52,108 @@ const numbersEl = document.getElementById("numbers");
 const resultEl = document.getElementById("result");
 const startBtn = document.getElementById("start-btn");
 const nextBtn = document.getElementById("next-btn");
+const timerEl = document.getElementById("timer");
 
-let mode = "";
 let numbers = [];
+let mode = "";
+let timer = 6;
+let timerInterval = null;
+let gameCompleted = false;
 
+/* ---------------- START GAME ---------------- */
 function startGame() {
+    if (gameCompleted) return;
+
+    clearInterval(timerInterval);
     resultEl.textContent = "";
+    startBtn.style.display = "none";
     nextBtn.style.display = "none";
+
+    timer = 6;
+    timerEl.textContent = `Time Left: ${timer}s`;
 
     mode = Math.random() < 0.5 ? "EVEN" : "ODD";
 
-    instructionEl.textContent = mode === "EVEN"
+    instructionEl.textContent =
+        mode === "EVEN"
         ? "👉 Find the BIGGEST EVEN number!"
         : "👉 Find the BIGGEST ODD number!";
 
-    numbers = Array.from({ length: 4 }, () => Math.floor(Math.random() * 90) + 10);
+    numbers = Array.from({ length: 4 }, () =>
+        Math.floor(Math.random() * 90) + 10
+    );
 
     numbersEl.innerHTML = "";
     numbers.forEach(num => {
-        let btn = document.createElement("button");
+        const btn = document.createElement("button");
         btn.className = "num-btn";
         btn.textContent = num;
         btn.onclick = () => checkAnswer(num);
         numbersEl.appendChild(btn);
     });
+
+    startTimer();
 }
 
-function checkAnswer(selected) {
-    let filtered = numbers.filter(n => mode === "EVEN" ? n % 2 === 0 : n % 2 === 1);
+/* ---------------- TIMER ---------------- */
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timer--;
+        timerEl.textContent = `Time Left: ${timer}s`;
 
-    if (filtered.length === 0) {
-        resultEl.textContent = "⚠ No valid numbers! Restarting...";
-        resultEl.style.color = "#ffaa00";
-        setTimeout(startGame, 2000);
+        if (timer <= 0) {
+            clearInterval(timerInterval);
+            failGame("⏳ Time’s up!");
+        }
+    }, 1000);
+}
+
+/* ---------------- CHECK ANSWER ---------------- */
+function checkAnswer(selected) {
+    if (gameCompleted) return;
+
+    clearInterval(timerInterval);
+
+    const valid = numbers.filter(n =>
+        mode === "EVEN" ? n % 2 === 0 : n % 2 === 1
+    );
+
+    if (valid.length === 0) {
+        failGame("⚠ No valid numbers!");
         return;
     }
 
-    let correct = Math.max(...filtered);
+    const correct = Math.max(...valid);
 
     if (selected === correct) {
-        resultEl.textContent = "🎉 Correct! Well done!";
-        resultEl.style.color = "#00ff66";
-        nextBtn.style.display = "inline-block";
+        winGame();
     } else {
-        resultEl.textContent = `❌ Wrong! The correct answer was ${correct}.`;
-        resultEl.style.color = "#ff3333";
-        setTimeout(startGame, 2000);
+        failGame(`❌ Wrong! Correct was ${correct}`);
     }
+}
+
+/* ---------------- WIN ---------------- */
+function winGame() {
+    gameCompleted = true;
+
+    resultEl.textContent = "🎉 Correct! Well done!";
+    resultEl.style.color = "#00ff66";
+
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/spades/4", { method: "POST" });
+}
+
+/* ---------------- FAIL ---------------- */
+function failGame(msg) {
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+
+    setTimeout(() => {
+        resultEl.textContent = "";
+        startBtn.style.display = "inline-block";
+        numbersEl.innerHTML = "";
+    }, 1600);
 }
 
 startBtn.addEventListener("click", startGame);
@@ -89,35 +163,42 @@ startBtn.addEventListener("click", startGame);
 .instruction-text {
     font-size: 22px;
     font-weight: bold;
-    margin-top: 10px;
+    margin-top: 12px;
     color: #ff5555;
-    text-shadow: 0 0 5px black;
+    text-shadow: 0 0 6px black;
+}
+
+.timer-text {
+    font-size: 22px;
+    margin-top: 10px;
+    color: #ffff66;
+    text-shadow: 0 0 6px black;
 }
 
 .numbers-box {
     margin-top: 25px;
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 18px;
 }
 
 .num-btn {
-    padding: 15px 25px;
+    padding: 15px 26px;
     font-size: 26px;
     font-weight: bold;
     background: #111;
     color: white;
     border: 2px solid red;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: 0.2s;
-}
-.num-btn:hover {
-    background: red;
-    transform: scale(1.1);
+    transition: 0.2s ease;
 }
 
-/* ★ BUTTON ROW LIKE SPADES A,2,3 */
+.num-btn:hover {
+    background: red;
+    transform: scale(1.12);
+}
+
 .button-row {
     margin-top: 30px;
     display: flex;

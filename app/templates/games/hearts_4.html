@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂴 Hearts 4 – Moral Choice</h2>
+
+        <p class="game-text">
+            Read the dilemma carefully.<br>
+            👉 Choose with your <b>heart</b>.
+        </p>
+
+        <!-- START -->
+        <button id="start-btn" class="btn red-btn">Start Choice</button>
+
+        <!-- GAME AREA -->
+        <div id="game-area" style="display:none;">
+
+            <p id="timer" class="timer-text">Time Left: 10s</p>
+
+            <!-- DILEMMA -->
+            <div id="dilemma" class="dilemma-box"></div>
+
+            <!-- OPTIONS -->
+            <div id="choices" class="choice-box"></div>
+
+            <p id="result" class="result-text"></p>
+
+            <!-- NAV -->
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='hearts') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='hearts') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FLOATING HEARTS 4 -->
+    <div class="floating-card">
+        <img src="{{ url_for('static', filename='images/heart_4.png') }}"
+             class="card-image glow-float"
+             alt="Hearts 4">
+    </div>
+
+</div>
+
+<script>
+/* ===========================
+   MORAL DILEMMAS
+=========================== */
+const dilemmas = [
+    {
+        text: "You can save only ONE person.",
+        choices: ["A stranger", "Your close friend"]
+    },
+    {
+        text: "Telling the truth will hurt someone deeply.",
+        choices: ["Tell the truth", "Protect their feelings"]
+    },
+    {
+        text: "You promised to stay, but leaving could save you.",
+        choices: ["Keep your promise", "Save yourself"]
+    },
+    {
+        text: "Someone you love made a terrible mistake.",
+        choices: ["Stand by them", "Walk away"]
+    },
+    {
+        text: "You can stop the pain now, or wait for hope.",
+        choices: ["End it now", "Hold on longer"]
+    }
+];
+
+/* ===========================
+   ELEMENTS
+=========================== */
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const dilemmaEl = document.getElementById("dilemma");
+const choicesEl = document.getElementById("choices");
+const resultEl = document.getElementById("result");
+const timerEl = document.getElementById("timer");
+const nextBtn = document.getElementById("next-btn");
+
+let timer = 10;
+let timerInterval = null;
+let acceptedIndex = -1;
+
+/* ===========================
+   START GAME
+=========================== */
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+    loadDilemma();
+};
+
+function loadDilemma() {
+    clearInterval(timerInterval);
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+    choicesEl.innerHTML = "";
+
+    timer = 10;
+    timerEl.textContent = `Time Left: ${timer}s`;
+
+    const d = dilemmas[Math.floor(Math.random() * dilemmas.length)];
+    dilemmaEl.textContent = d.text;
+
+    // Randomly choose an internally accepted option
+    acceptedIndex = Math.floor(Math.random() * d.choices.length);
+
+    d.choices.forEach((choice, index) => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = choice;
+        btn.onclick = () => choose(index);
+        choicesEl.appendChild(btn);
+    });
+
+    startTimer();
+}
+
+/* ===========================
+   TIMER
+=========================== */
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timer--;
+        timerEl.textContent = `Time Left: ${timer}s`;
+
+        if (timer <= 0) {
+            clearInterval(timerInterval);
+            gentleEnd();
+        }
+    }, 1000);
+}
+
+/* ===========================
+   CHOICE HANDLER
+=========================== */
+function choose(index) {
+    clearInterval(timerInterval);
+
+    resultEl.textContent =
+        index === acceptedIndex
+        ? "💗 Your choice feels right."
+        : "💭 Every choice carries weight.";
+
+    resultEl.style.color = "#ffcccc";
+
+    nextBtn.style.display = "inline-block";
+    fetch("/complete/hearts/4", { method: "POST" });
+}
+
+/* ===========================
+   TIME END
+=========================== */
+function gentleEnd() {
+    resultEl.textContent = "⏳ Sometimes not choosing is a choice too.";
+    resultEl.style.color = "#ffcccc";
+
+    nextBtn.style.display = "inline-block";
+}
+</script>
+
+<style>
+.dilemma-box {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 25px 0;
+    padding: 18px;
+    background: rgba(0,0,0,0.55);
+    border-left: 4px solid pink;
+    color: #ffecec;
+}
+
+.choice-box {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.choice-btn {
+    padding: 16px;
+    font-size: 18px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.6);
+    color: #ffecec;
+    border: 2px solid pink;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.choice-btn:hover {
+    background: pink;
+    color: black;
+    transform: scale(1.03);
+}
+
+.timer-text {
+    font-size: 22px;
+    color: #ffcccc;
+}
+
+.button-row {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+</style>
+
+{% endblock %}

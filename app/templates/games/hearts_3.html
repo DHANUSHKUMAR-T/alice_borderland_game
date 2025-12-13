@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂳 Hearts 3 – Heartbeat Rhythm</h2>
+
+        <p class="game-text">
+            Watch the heartbeat rhythm carefully.<br>
+            👉 Then tap in the <b>SAME rhythm</b>.
+        </p>
+
+        <!-- START -->
+        <button id="start-btn" class="btn red-btn">Start Rhythm</button>
+
+        <!-- GAME AREA -->
+        <div id="game-area" style="display:none;">
+
+            <p id="timer" class="timer-text">Time Left: 6s</p>
+
+            <!-- RHYTHM VISUAL (HIDDEN UNTIL SUCCESS) -->
+            <div id="rhythm-visual" class="rhythm-visual" style="display:none;"></div>
+
+            <!-- HEART -->
+            <div id="heart" class="heart-display">❤️</div>
+
+            <p class="instruction-text">
+                Tap the button below in the same rhythm
+            </p>
+
+            <button id="tap-btn" class="btn card-btn tap-btn">TAP ❤️</button>
+
+            <p id="result" class="result-text"></p>
+
+            <!-- NAV -->
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='hearts') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='hearts') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FLOATING HEARTS 3 CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/3H.png"
+             class="card-image glow-float"
+             alt="Hearts 3">
+    </div>
+
+</div>
+
+<script>
+/* ===============================
+   RHYTHM PATTERNS
+================================ */
+const rhythmPatterns = [
+    { pattern: [600,600,600,600,600], visual: "❤️ … ❤️ … ❤️ … ❤️ … ❤️" },
+    { pattern: [600,600,300,300,600], visual: "❤️ … ❤️ … ❤️ ❤️ … ❤️" },
+    { pattern: [600,600,600,300,300], visual: "❤️ … ❤️ … ❤️ … ❤️ ❤️" },
+    { pattern: [700,400,700,400,700], visual: "❤️ … ❤️ ❤️ … ❤️ ❤️" },
+    { pattern: [400,700,300,800,400,600], visual: "❤️ ❤️ … ❤️ … … ❤️" },
+    { pattern: [300,300,700,300,300,700], visual: "❤️ ❤️ … … ❤️ ❤️ …" }
+];
+
+let selectedPattern = null;
+let userTaps = [];
+let rhythmStartTime = 0;
+let timer = 6;
+let timerInterval = null;
+
+/* ===============================
+   ELEMENTS
+================================ */
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const heartEl = document.getElementById("heart");
+const tapBtn = document.getElementById("tap-btn");
+const timerEl = document.getElementById("timer");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+const rhythmVisualEl = document.getElementById("rhythm-visual");
+
+/* ===============================
+   START GAME
+================================ */
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+
+    resultEl.textContent = "";
+    rhythmVisualEl.style.display = "none";   // 🔒 hide visual
+    userTaps = [];
+    rhythmStartTime = 0;
+
+    choosePattern();
+    playRhythm();
+};
+
+/* ===============================
+   SELECT PATTERN
+================================ */
+function choosePattern() {
+    selectedPattern =
+        rhythmPatterns[Math.floor(Math.random() * rhythmPatterns.length)];
+}
+
+/* ===============================
+   PLAY RHYTHM
+================================ */
+function playRhythm() {
+    let time = 0;
+
+    selectedPattern.pattern.forEach(delay => {
+        setTimeout(() => {
+            heartEl.classList.add("beat");
+            setTimeout(() => heartEl.classList.remove("beat"), 150);
+        }, time);
+        time += delay;
+    });
+
+    setTimeout(() => {
+        rhythmStartTime = performance.now();
+        startTimer();
+    }, time + 400);
+}
+
+/* ===============================
+   TIMER
+================================ */
+function startTimer() {
+    timer = 6;
+    timerEl.textContent = `Time Left: ${timer}s`;
+
+    timerInterval = setInterval(() => {
+        timer--;
+        timerEl.textContent = `Time Left: ${timer}s`;
+
+        if (timer <= 0) {
+            clearInterval(timerInterval);
+            evaluate();
+        }
+    }, 1000);
+}
+
+/* ===============================
+   TAP HANDLER
+================================ */
+tapBtn.onclick = () => {
+    if (!rhythmStartTime) return;
+    userTaps.push(performance.now());
+};
+
+/* ===============================
+   EVALUATE
+================================ */
+function evaluate() {
+    const pattern = selectedPattern.pattern;
+
+    if (userTaps.length < pattern.length) {
+        fail("❌ Not enough taps!");
+        return;
+    }
+
+    let intervals = [];
+    for (let i = 1; i < userTaps.length; i++) {
+        intervals.push(userTaps[i] - userTaps[i - 1]);
+    }
+
+    let correct = true;
+    for (let i = 0; i < pattern.length - 1; i++) {
+        if (Math.abs(intervals[i] - pattern[i]) > 150) {
+            correct = false;
+            break;
+        }
+    }
+
+    if (correct) {
+        // ✅ SHOW RHYTHM ONLY ON SUCCESS
+        rhythmVisualEl.textContent = selectedPattern.visual;
+        rhythmVisualEl.style.display = "block";
+
+        resultEl.textContent = "🎉 Perfect rhythm! Heart synced.";
+        resultEl.style.color = "#00ff66";
+
+        nextBtn.style.display = "inline-block";
+        fetch("/complete/hearts/3", { method: "POST" });
+    } else {
+        fail("❌ Rhythm mismatch. Try again.");
+    }
+}
+
+/* ===============================
+   FAIL
+================================ */
+function fail(msg) {
+    rhythmVisualEl.style.display = "none"; // ❌ never show on fail
+
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+
+    setTimeout(() => {
+        startBtn.style.display = "inline-block";
+        gameArea.style.display = "none";
+        rhythmStartTime = 0;
+    }, 2000);
+}
+</script>
+
+<style>
+.heart-display {
+    font-size: 80px;
+    margin: 20px 0;
+    transition: transform 0.15s ease;
+}
+
+.heart-display.beat {
+    transform: scale(1.4);
+}
+
+.rhythm-visual {
+    font-size: 26px;
+    color: #ffcccc;
+    margin: 15px 0;
+    letter-spacing: 4px;
+    text-shadow: 0 0 6px black;
+}
+
+.tap-btn {
+    font-size: 22px;
+    padding: 14px 30px;
+}
+
+.instruction-text {
+    font-size: 20px;
+    color: #ffcccc;
+}
+
+.timer-text {
+    font-size: 22px;
+    color: #ffcccc;
+}
+
+.button-row {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+</style>
+
+{% endblock %}

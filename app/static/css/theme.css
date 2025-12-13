@@ -427,3 +427,67 @@ main.center-content {
     justify-content: space-between;
     margin-top: 20px;
 }
+
+/* =========================================================
+   UNIVERSAL PLAYING CARD STYLE (A, 2, 3, 4, J, Q, K)
+   ========================================================= */
+
+/* Wrapper for floating cards (right side display) */
+.floating-card {
+    position: fixed;
+    right: 40px;
+    top: 180px;
+    z-index: 20;
+    pointer-events: none;
+}
+
+/* UNIVERSAL CARD SIZE (forces all cards equal) */
+.card-image {
+    width: 150px;      /* SAME for all cards */
+    height: 220px;
+    object-fit: contain;   /* keeps aspect ratio */
+    border-radius: 14px;
+
+    background: rgba(0, 0, 0, 0.45);
+    padding: 6px;
+
+    box-shadow: 
+        0 0 12px rgba(255, 0, 0, 0.4),
+        0 0 28px rgba(255, 0, 0, 0.6);
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* GLOW + FLOAT EFFECT (used in games) */
+.glow-float {
+    animation: cardFloat 3s ease-in-out infinite,
+               glowPulse 2s ease-in-out infinite alternate;
+}
+
+/* FLOATING ANIMATION */
+@keyframes cardFloat {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-18px); }
+    100% { transform: translateY(0px); }
+}
+
+/* GLOW PULSE */
+@keyframes glowPulse {
+    0% {
+        box-shadow:
+            0 0 15px rgba(255, 0, 0, 0.5),
+            0 0 30px rgba(255, 0, 0, 0.7);
+    }
+    100% {
+        box-shadow:
+            0 0 25px rgba(255, 60, 60, 0.9),
+            0 0 45px rgba(255, 60, 60, 1);
+    }
+}
+.game-card-display {
+    background: rgba(0, 0, 0, 0.55); /* dark glass */
+    backdrop-filter: blur(6px);
+    border-radius: 14px;
+    padding: 25px 150px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+}

@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂥 Spades 5 – Color Decision Game</h2>
+
+        <p class="game-text">
+            Choose correctly based on the instruction!<br>
+            <b>WORD meaning</b> or <b>COLOR displayed</b>
+        </p>
+
+        <!-- START BUTTON (ONLY THING VISIBLE INITIALLY) -->
+        <button id="start-btn" class="btn red-btn">Start Game</button>
+
+        <!-- GAME AREA (HIDDEN UNTIL START) -->
+        <div id="game-area" style="display:none;">
+
+            <div id="instruction" class="instruction-text"></div>
+            <p id="timer" class="timer-text">Time Left: 5s</p>
+
+            <!-- STROOP WORD -->
+            <div id="stroop-word" class="stroop-word">RED</div>
+
+            <!-- OPTIONS -->
+            <div class="color-options">
+                <button class="color-btn red" data-value="RED">RED</button>
+                <button class="color-btn blue" data-value="BLUE">BLUE</button>
+                <button class="color-btn green" data-value="GREEN">GREEN</button>
+                <button class="color-btn yellow" data-value="YELLOW">YELLOW</button>
+            </div>
+
+            <p id="result" class="result-text"></p>
+
+            <!-- NAV BUTTONS -->
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='spades') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='spades') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FLOATING SPADE 5 -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/5S.png"
+             class="card-image glow-float"
+             alt="Spades 5">
+    </div>
+
+</div>
+
+<script>
+/* -------------------------------
+   DATA
+--------------------------------*/
+const words = ["RED", "BLUE", "GREEN", "YELLOW"];
+const colorMap = {
+    RED: "red",
+    BLUE: "blue",
+    GREEN: "green",
+    YELLOW: "yellow"
+};
+
+/* -------------------------------
+   ELEMENTS
+--------------------------------*/
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const instructionEl = document.getElementById("instruction");
+const stroopWordEl = document.getElementById("stroop-word");
+const timerEl = document.getElementById("timer");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+/* -------------------------------
+   STATE
+--------------------------------*/
+let correctAnswer = "";
+let timer = 5;
+let timerInterval = null;
+let mode = ""; // WORD or COLOR
+
+/* -------------------------------
+   START GAME
+--------------------------------*/
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+    startRound();
+};
+
+function startRound() {
+    resultEl.textContent = "";
+    clearInterval(timerInterval);
+
+    timer = 5;
+    timerEl.textContent = `Time Left: ${timer}s`;
+
+    // Pick word & mismatched color
+    const word = words[Math.floor(Math.random() * words.length)];
+    const colorChoices = words.filter(w => w !== word);
+    const inkColor = colorChoices[Math.floor(Math.random() * colorChoices.length)];
+
+    stroopWordEl.textContent = word;
+    stroopWordEl.style.color = colorMap[inkColor];
+
+    // Pick mode
+    mode = Math.random() < 0.5 ? "WORD" : "COLOR";
+
+    instructionEl.textContent =
+        mode === "WORD"
+        ? "👉 Choose the WORD meaning"
+        : "👉 Choose the COLOR displayed";
+
+    correctAnswer = mode === "WORD" ? word : inkColor;
+
+    startTimer();
+}
+
+/* -------------------------------
+   TIMER
+--------------------------------*/
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timer--;
+        timerEl.textContent = `Time Left: ${timer}s`;
+
+        if (timer <= 0) {
+            clearInterval(timerInterval);
+            failGame("⏳ Time’s up!");
+        }
+    }, 1000);
+}
+
+/* -------------------------------
+   BUTTON CLICKS
+--------------------------------*/
+document.querySelectorAll(".color-btn").forEach(btn => {
+    btn.onclick = () => {
+        clearInterval(timerInterval);
+        const selected = btn.dataset.value;
+
+        if (selected === correctAnswer) {
+            resultEl.textContent = "🎉 Correct! Well done!";
+            resultEl.style.color = "#00ff66";
+            nextBtn.style.display = "inline-block";
+
+            fetch("/complete/spades/5", { method: "POST" });
+        } else {
+            failGame(`❌ Wrong! Correct was ${correctAnswer}`);
+        }
+    };
+});
+
+/* -------------------------------
+   FAIL
+--------------------------------*/
+function failGame(msg) {
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+
+    setTimeout(() => {
+        startRound();
+    }, 1800);
+}
+</script>
+
+<style>
+.stroop-word {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 25px 0;
+    text-shadow: 0 0 8px black;
+}
+
+.color-options {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.color-btn {
+    padding: 14px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 10px;
+    border: 2px solid red;
+    background: #111;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.color-btn:hover {
+    transform: scale(1.1);
+}
+
+.color-btn.red { color: red; }
+.color-btn.blue { color: #3399ff; }
+.color-btn.green { color: #33ff99; }
+.color-btn.yellow { color: #ffff66; }
+
+.instruction-text {
+    font-size: 22px;
+    color: #ff5555;
+    margin-top: 10px;
+}
+
+.timer-text {
+    font-size: 22px;
+    color: #ffff66;
+}
+
+.button-row {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

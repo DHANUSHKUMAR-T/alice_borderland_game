@@ -2,13 +2,22 @@
 {% block content %}
 
 <div class="game-container">
+
+    <!-- FLOATING SPADE 2 CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/2S.png"
+     class="card-image glow-float"
+     alt="Spades 2">
+
+    </div>
+
     <div class="game-card-display">
 
-        <h2 class="menu-title">🂢 Spades – Reaction Timer</h2>
+        <h2 class="menu-title">🂢 Spades 2 – Reaction Timer</h2>
 
         <p class="game-text">
             Click the correct box as soon as it says <b>NOW!</b><br>
-            You must react within <span style="color:#ff4444;">0.35 seconds</span>.<br>
+            You must react within <span class="danger">0.35 seconds</span>.<br>
             Complete <b>3 rounds</b> to unlock the next card.
         </p>
 
@@ -18,35 +27,37 @@
         </div>
 
         <p id="round-status" class="round-text">Round: 1 / 3</p>
-
         <p id="result" class="result-text"></p>
 
         <button id="start-btn" class="btn red-btn start-center">Start</button>
 
         <div class="next-nav">
-            <a id="next-card" href="{{ url_for('main.suit_cards', suit='spades') }}"
-               class="btn card-btn" style="display:none;">Next Card →</a>
+            <a id="next-card"
+               href="{{ url_for('main.suit_cards', suit='spades') }}"
+               class="btn card-btn"
+               style="display:none;">Next Card →</a>
 
-            <a href="{{ url_for('main.suit_cards', suit='spades') }}" class="btn card-btn">Back</a>
+            <a href="{{ url_for('main.suit_cards', suit='spades') }}"
+               class="btn card-btn">Back</a>
         </div>
 
     </div>
 </div>
 
 <script>
-let boxLeft = document.getElementById("box-left");
-let boxRight = document.getElementById("box-right");
-let resultText = document.getElementById("result");
-let roundStatus = document.getElementById("round-status");
-let startBtn = document.getElementById("start-btn");
-let nextCardBtn = document.getElementById("next-card");
+const boxLeft = document.getElementById("box-left");
+const boxRight = document.getElementById("box-right");
+const resultText = document.getElementById("result");
+const roundStatus = document.getElementById("round-status");
+const startBtn = document.getElementById("start-btn");
+const nextCardBtn = document.getElementById("next-card");
 
 let canClick = false;
 let startTime = 0;
-
 let currentRound = 1;
 let totalTime = 0;
 let correctBox = null;
+let failOffset = 0;
 
 function resetBoxes() {
     boxLeft.textContent = "WAIT…";
@@ -55,19 +66,16 @@ function resetBoxes() {
     boxRight.style.background = "#222";
 }
 
-startBtn.onclick = function () {
+startBtn.onclick = () => {
     resultText.textContent = "";
     startBtn.style.display = "none";
     resetBoxes();
 
-    // Random delay 1–4 sec
-    let delay = Math.random() * 3000 + 1000;
-
-    // Choose LEFT or RIGHT randomly
+    const delay = Math.random() * 3000 + 1000;
     correctBox = Math.random() < 0.5 ? "left" : "right";
 
     setTimeout(() => {
-        let box = correctBox === "left" ? boxLeft : boxRight;
+        const box = correctBox === "left" ? boxLeft : boxRight;
         box.textContent = "NOW!";
         box.style.background = "#ff2222";
 
@@ -77,42 +85,33 @@ startBtn.onclick = function () {
 };
 
 function handleClick(side) {
-    if (!canClick) {
-        resultText.textContent = "Too early! Wait for NOW!";
-        resultText.style.color = "#ff4444";
-        return;
-    }
+    if (!canClick) return;
 
-    let reactionTime = performance.now() - startTime;
     canClick = false;
+    const reactionTime = performance.now() - startTime;
 
     if (side === correctBox && reactionTime <= 350) {
-        resultText.textContent = "✔ " + reactionTime.toFixed(0) + " ms — Good!";
+        resultText.textContent = `✔ ${reactionTime.toFixed(0)} ms — Good!`;
         resultText.style.color = "#00ff66";
-
         totalTime += reactionTime;
 
         if (currentRound === 3) {
-            // COMPLETE GAME
             resultText.textContent =
-                "🎉 All Rounds Complete! Total Time = " +
-                Math.round(totalTime) +
-                " ms";
-
+                `🎉 Completed! Total Time ≈ ${Math.round(totalTime)} ms`;
             nextCardBtn.style.display = "inline-block";
             fetch("/complete/spades/2", { method: "POST" });
         } else {
-            // NEXT ROUND
             currentRound++;
-            roundStatus.textContent = "Round: " + currentRound + " / 3";
+            roundStatus.textContent = `Round: ${currentRound} / 3`;
             startBtn.style.display = "block";
         }
-
     } else {
         resultText.textContent = "❌ Too slow! Try again.";
         resultText.style.color = "#ff4444";
 
-        // reset the same round
+        // punishment: move start button left
+        failOffset -= 20;
+        startBtn.style.transform = `translateX(${failOffset}px)`;
         startBtn.style.display = "block";
     }
 }
@@ -122,11 +121,13 @@ boxRight.onclick = () => handleClick("right");
 </script>
 
 <style>
+
+/* GAME UI */
 .reaction-grid {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
     gap: 20px;
+    margin-top: 20px;
 }
 
 .reaction-box {
@@ -144,23 +145,25 @@ boxRight.onclick = () => handleClick("right");
 }
 
 .round-text {
-    margin-top: 20px;
-    font-size: 22px;
+    margin-top: 18px;
+    font-size: 20px;
     font-weight: bold;
+}
+
+.result-text {
+    margin-top: 15px;
+    font-size: 22px;
 }
 
 .start-center {
     display: block;
     margin: 20px auto;
+    transition: transform 0.3s ease;
 }
 
-.result-text {
-    margin-top: 20px;
-    font-size: 22px;
-}
-
-.next-nav {
-    margin-top: 25px;
+.danger {
+    color: #ff4444;
+    font-weight: bold;
 }
 </style>
 

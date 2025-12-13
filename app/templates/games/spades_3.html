@@ -4,104 +4,128 @@
 <div class="game-container">
     <div class="game-card-display">
 
-        <h2 class="menu-title">🂣 Spades – Odd One Out</h2>
+        <h2 class="menu-title">🂣 Spades 3 – Odd One Out</h2>
 
         <p class="game-text">
-            Find the <b>different symbol</b> in the grid!<br>
-            Difficulty increases each round.
+            Find the <b>different symbol</b> in the grid.<br>
+            You have <b>5 seconds</b> for each round.<br>
+            Complete <b>3 rounds</b> to unlock the next card.
         </p>
 
         <p id="round-info" class="round-text">Round: 1 / 3</p>
         <p id="timer" class="timer-text">Time Left: 5s</p>
 
-        <div id="grid" class="odd-grid"></div>
+        <div id="grid" class="odd-grid disabled"></div>
 
         <p id="result" class="result-text"></p>
 
         <button id="start-btn" class="btn red-btn start-center">Start</button>
 
         <div class="next-nav">
-            <a id="next-card" href="{{ url_for('main.suit_cards', suit='spades') }}"
-               class="btn card-btn" style="display:none;">Next Card →</a>
+            <a id="next-card"
+               href="{{ url_for('main.suit_cards', suit='spades') }}"
+               class="btn card-btn"
+               style="display:none;">
+                Next Card →
+            </a>
 
-            <a href="{{ url_for('main.suit_cards', suit='spades') }}" class="btn card-btn">Back</a>
+            <a href="{{ url_for('main.suit_cards', suit='spades') }}"
+               class="btn card-btn">
+                Back
+            </a>
         </div>
 
+        
+
+    </div>
+    <!-- FLOATING SPADE 3 CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/3S.png"
+ class="card-image glow-float"
+             alt="Spades 3">
     </div>
 </div>
 
 <script>
-const suits = ["♠", "♥", "♦", "♣"];
-let gridEl = document.getElementById("grid");
-let roundInfo = document.getElementById("round-info");
-let timerEl = document.getElementById("timer");
-let resultEl = document.getElementById("result");
-let startBtn = document.getElementById("start-btn");
-let nextCardBtn = document.getElementById("next-card");
+const symbols = ["♠", "♥", "♦", "♣"];
 
-let gridSize = 3; // starts 3x3 → 4x4 → 5x5
+const gridEl = document.getElementById("grid");
+const roundInfo = document.getElementById("round-info");
+const timerEl = document.getElementById("timer");
+const resultEl = document.getElementById("result");
+const startBtn = document.getElementById("start-btn");
+const nextCardBtn = document.getElementById("next-card");
+
+let gridSize = 3;   // 3x3 → 4x4 → 5x5
 let round = 1;
-let timer = 5;
-let timerInterval;
-
+let timeLeft = 5;
+let timerInterval = null;
 let correctIndex = null;
 
+/* ---------------- START ROUND ---------------- */
 function startRound() {
+    clearInterval(timerInterval);
+
     resultEl.textContent = "";
     startBtn.style.display = "none";
 
-    // Reset timer
-    timer = 5;
-    timerEl.textContent = "Time Left: " + timer + "s";
+    gridEl.classList.remove("disabled");
+
+    timeLeft = 5;
+    timerEl.textContent = "Time Left: 5s";
+
+    generateGrid();
 
     timerInterval = setInterval(() => {
-        timer--;
-        timerEl.textContent = "Time Left: " + timer + "s";
+        timeLeft--;
+        timerEl.textContent = "Time Left: " + timeLeft + "s";
 
-        if (timer <= 0) {
+        if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            resultEl.textContent = "❌ Time's up! Try again.";
+            gridEl.classList.add("disabled");
+            resultEl.textContent = "❌ Time’s up! Try again.";
             resultEl.style.color = "#ff4444";
             startBtn.style.display = "block";
         }
     }, 1000);
-
-    generateGrid();
 }
+
+/* ---------------- GENERATE GRID ---------------- */
 function generateGrid() {
     gridEl.innerHTML = "";
     gridEl.style.gridTemplateColumns = `repeat(${gridSize}, 80px)`;
-    gridEl.style.gridTemplateRows = `repeat(${gridSize}, 80px)`;
 
-    let totalCells = gridSize * gridSize;
+    const totalCells = gridSize * gridSize;
 
-    // Pick main symbol & odd symbol
-    let mainSymbol = suits[Math.floor(Math.random() * suits.length)];
-    let oddSymbol = suits.filter(s => s !== mainSymbol)[Math.floor(Math.random() * 3)];
+    const mainSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+    const oddSymbol = symbols.filter(s => s !== mainSymbol)
+                             [Math.floor(Math.random() * 3)];
 
-    // Random cell for the odd one
     correctIndex = Math.floor(Math.random() * totalCells);
 
     for (let i = 0; i < totalCells; i++) {
-        let cell = document.createElement("div");
+        const cell = document.createElement("div");
         cell.className = "odd-cell";
-
         cell.textContent = (i === correctIndex) ? oddSymbol : mainSymbol;
 
-        cell.onclick = () => choose(i);
+        cell.onclick = () => chooseCell(i);
 
         gridEl.appendChild(cell);
     }
 }
 
-function choose(index) {
+/* ---------------- CHOOSE CELL ---------------- */
+function chooseCell(index) {
+    if (gridEl.classList.contains("disabled")) return;
+
+    clearInterval(timerInterval);
+    gridEl.classList.add("disabled");
+
     if (index === correctIndex) {
-        clearInterval(timerInterval);
         resultEl.textContent = "🎉 Correct!";
         resultEl.style.color = "#00ff66";
 
         if (round === 3) {
-            // unlock next card
             nextCardBtn.style.display = "inline-block";
             fetch("/complete/spades/3", { method: "POST" });
         } else {
@@ -111,9 +135,12 @@ function choose(index) {
             startBtn.style.display = "block";
         }
     } else {
-        clearInterval(timerInterval);
         resultEl.textContent = "❌ Wrong! Try again.";
         resultEl.style.color = "#ff4444";
+
+        // Highlight correct cell
+        gridEl.children[correctIndex].style.background = "#00aa44";
+
         startBtn.style.display = "block";
     }
 }
@@ -129,6 +156,11 @@ startBtn.onclick = startRound;
     margin-top: 20px;
 }
 
+.odd-grid.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
 .odd-cell {
     width: 80px;
     height: 80px;
@@ -137,6 +169,7 @@ startBtn.onclick = startRound;
     border-radius: 10px;
     font-size: 40px;
     font-weight: bold;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -145,13 +178,19 @@ startBtn.onclick = startRound;
 }
 
 .odd-cell:hover {
-    background: #ff3333;
     transform: scale(1.1);
+    background: #ff3333;
 }
 
-.timer-text, .round-text {
+.timer-text,
+.round-text {
     font-size: 22px;
     margin-top: 10px;
+}
+
+.start-center {
+    display: block;
+    margin: 20px auto;
 }
 </style>
 

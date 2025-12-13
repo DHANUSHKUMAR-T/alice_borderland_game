@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <!-- GAME PANEL -->
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂱 Hearts A – Cinematic Emotion Test</h2>
+
+        <p class="game-text">
+            Read the dialogue carefully.<br>
+            👉 Identify the <b>dominant emotion</b> behind it.
+        </p>
+
+        <!-- START BUTTON -->
+        <button id="start-btn" class="btn red-btn">Start Scene</button>
+
+        <!-- GAME AREA -->
+        <div id="game-area" style="display:none;">
+
+            <p id="timer" class="timer-text">Time Left: 60s</p>
+
+            <!-- MOVIE DIALOGUE -->
+            <div id="dialogue-box" class="dialogue-box">
+                <p>“You know, I used to think that my life was a tragedy…”</p>
+                <p>“…but now I realize it’s a comedy.”</p>
+                <p>“Everyone just laughs at me.”</p>
+                <p>“Nobody thinks how it feels to be me.”</p>
+            </div>
+
+            <!-- OPTIONS -->
+            <div class="emotion-options">
+                <button class="emotion-btn" data-emotion="SAD">😢 Sad</button>
+                <button class="emotion-btn" data-emotion="ANGRY">😡 Angry</button>
+                <button class="emotion-btn" data-emotion="HAPPY">😄 Happy</button>
+                <button class="emotion-btn" data-emotion="CONFUSED">😐 Confused</button>
+            </div>
+
+            <p id="result" class="result-text"></p>
+
+            <!-- NAVIGATION -->
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='hearts') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='hearts') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FLOATING CARD (OPTIONAL — REMOVE IF YOU DON’T WANT IT) -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/AH.png"
+             class="card-image glow-float"
+             alt="Hearts A">
+    </div>
+
+</div>
+
+
+<script>
+/* -------------------------
+   GAME DATA
+------------------------- */
+const scenes = [
+    {
+        lines: [
+            "You know, I used to think that my life was a tragedy…",
+            "but now I realize it’s a comedy.",
+            "Everyone just laughs at me.",
+            "Nobody thinks how it feels to be me."
+        ],
+        answer: "SAD"
+    },
+    {
+        lines: [
+            "I gave you everything.",
+            "I trusted you with my life.",
+            "And this is how you repay me?",
+            "You never cared at all."
+        ],
+        answer: "ANGRY"
+    },
+    {
+        lines: [
+            "I don’t know what’s happening anymore.",
+            "Nothing feels real.",
+            "Everything is moving too fast.",
+            "I just feel lost."
+        ],
+        answer: "CONFUSED"
+    },
+    {
+        lines: [
+            "I was afraid to tell you the truth.",
+            "Because I knew once you heard it…",
+            "Everything would change.",
+            "And I wasn’t ready to lose you."
+        ],
+        answer: "FEAR"
+    },
+    {
+        lines: [
+            "After all this time…",
+            "After everything we went through…",
+            "You’re still standing here with me.",
+            "That means more than you know."
+        ],
+        answer: "HAPPY"
+    },
+    {
+        lines: [
+            "I stayed silent for too long.",
+            "I watched everything fall apart.",
+            "And now it’s too late to fix it.",
+            "That regret will follow me forever."
+        ],
+        answer: "SAD"
+    },
+    {
+        lines: [
+            "I stood there watching them walk away.",
+            "I wanted to say something.",
+            "But the words never came.",
+            "Some goodbyes happen in silence."
+        ],
+        answer: "SAD"
+    },
+    {
+        lines: [
+            "You crossed a line you can’t come back from.",
+            "I warned you more than once.",
+            "Now you want forgiveness?",
+            "You don’t deserve it."
+        ],
+        answer: "ANGRY"
+    },
+    {
+        lines: [
+            "You promised you would protect us.",
+            "You looked me in the eyes and lied.",
+            "Do you have any idea what you’ve done?",
+            "This ends now."
+        ],
+        answer: "ANGRY"
+    },
+    {
+        lines: [
+            "Everything I believed in is gone.",
+            "The rules don’t make sense anymore.",
+            "I don’t know who to trust.",
+            "I don’t even trust myself."
+        ],
+        answer: "CONFUSED"
+    },
+    {
+        lines: [
+            "Every sound feels louder in the dark.",
+            "I keep looking over my shoulder.",
+            "Something bad is coming.",
+            "I can feel it."
+        ],
+        answer: "FEAR"
+    },
+    {
+        lines: [
+            "I never thought I’d make it this far.",
+            "Against all odds, I’m still here.",
+            "I survived everything they threw at me.",
+            "And I’m proud of that."
+        ],
+        answer: "HAPPY"
+    },
+    {
+        lines: [
+            "Everyone expects me to know the answer.",
+            "But I don’t.",
+            "I’m trying to choose the right path.",
+            "What if I choose wrong?"
+        ],
+        answer: "FEAR"
+    }
+];
+
+
+/* -------------------------
+   ELEMENTS
+------------------------- */
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const dialogueBox = document.getElementById("dialogue-box");
+const timerEl = document.getElementById("timer");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+const buttons = document.querySelectorAll(".emotion-btn");
+
+/* -------------------------
+   STATE
+------------------------- */
+let correctEmotion = "";
+let timer = 60;
+let interval = null;
+
+/* -------------------------
+   START GAME
+------------------------- */
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+    startScene();
+};
+
+function startScene() {
+    clearInterval(interval);
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+
+    timer = 60;
+    timerEl.textContent = `Time Left: ${timer}s`;
+
+    const scene = scenes[Math.floor(Math.random() * scenes.length)];
+    correctEmotion = scene.answer;
+
+    dialogueBox.innerHTML = "";
+    scene.lines.forEach(line => {
+        const p = document.createElement("p");
+        p.textContent = `“${line}”`;
+        dialogueBox.appendChild(p);
+    });
+
+    startTimer();
+}
+
+/* -------------------------
+   TIMER
+------------------------- */
+function startTimer() {
+    interval = setInterval(() => {
+        timer--;
+        timerEl.textContent = `Time Left: ${timer}s`;
+
+        if (timer <= 0) {
+            clearInterval(interval);
+            failGame("⏳ Time’s up!");
+        }
+    }, 1000);
+}
+
+/* -------------------------
+   BUTTON CLICKS
+------------------------- */
+buttons.forEach(btn => {
+    btn.onclick = () => {
+        clearInterval(interval);
+
+        const selected = btn.dataset.emotion;
+
+        if (selected === correctEmotion) {
+            resultEl.textContent = "🎉 Correct! You understood the emotion.";
+            resultEl.style.color = "#00ff66";
+
+            nextBtn.style.display = "inline-block";
+            fetch("/complete/hearts/A", { method: "POST" });
+        } else {
+            failGame("❌ That emotion doesn’t fully match the scene.");
+        }
+    };
+});
+
+/* -------------------------
+   FAIL
+------------------------- */
+function failGame(msg) {
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+
+    setTimeout(() => {
+        startScene();
+    }, 2500);
+}
+</script>
+
+<style>
+.dialogue-box {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.6);
+    border-left: 4px solid pink;
+    text-align: left;
+}
+
+.dialogue-box p {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #ffecec;
+    margin: 6px 0;
+}
+
+.emotion-options {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.emotion-btn {
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 12px;
+    border: 2px solid pink;
+    background: #111;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.emotion-btn:hover {
+    background: pink;
+    color: black;
+    transform: scale(1.1);
+}
+
+.timer-text {
+    font-size: 22px;
+    color: #ffcccc;
+}
+
+.button-row {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+</style>
+
+{% endblock %}

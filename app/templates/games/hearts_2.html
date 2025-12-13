@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂲 Hearts 2 – Trust or Trap</h2>
+
+        <p class="game-text">
+            Five statements appear before you.<br>
+            👉 Only <b>ONE</b> is truthful.<br>
+            Trust your intuition — not logic.
+        </p>
+
+        <!-- START BUTTON -->
+        <button id="start-btn" class="btn red-btn">Start Game</button>
+
+        <!-- GAME AREA -->
+        <div id="game-area" style="display:none;">
+
+            <p id="timer" class="timer-text">Time Left: 5s</p>
+
+            <p class="instruction-text">Choose the statement you TRUST</p>
+
+            <!-- STATEMENTS -->
+            <div id="statements" class="statement-box"></div>
+
+            <p id="result" class="result-text"></p>
+
+            <!-- NAV -->
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='hearts') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='hearts') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FLOATING HEARTS 2 CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/2H.png"
+             class="card-image glow-float"
+             alt="Hearts 2">
+    </div>
+
+</div>
+
+<script>
+/* ---------------------------
+   TRUST SCENARIOS (5 OPTIONS)
+--------------------------- */
+const scenarios = [
+    {
+        statements: [
+            "This door is safe.",
+            "The timer will stop.",
+            "Nothing happens if you wait.",
+            "You are already too late.",
+            "Someone is watching you."
+        ],
+        correct: 0
+    },
+    {
+        statements: [
+            "They want to help you.",
+            "You are being watched.",
+            "No one remembers this place.",
+            "Everything here is fake.",
+            "You should run now."
+        ],
+        correct: 1
+    },
+    {
+        statements: [
+            "Silence is the answer.",
+            "The danger has passed.",
+            "Trust is a weakness.",
+            "You chose correctly before.",
+            "Fear is misleading you."
+        ],
+        correct: 0
+    },
+    
+    {
+        statements: [
+            "Leaving now will save you.",
+            "Staying will change nothing.",
+            "Every choice has a cost.",
+            "This is only a test.",
+            "Someone else failed here."
+        ],
+        correct: 2
+    },
+    {
+        statements: [
+            "Not choosing is still a choice.",
+            "Waiting will protect you.",
+            "The safest path is behind you.",
+            "You are allowed to hesitate.",
+            "Fear keeps you alive."
+        ],
+        correct: 4
+    },
+    {
+        statements: [
+            "Everyone here is lying.",
+            "You can trust your instincts.",
+            "Logic will save you.",
+            "Time is on your side.",
+            "You already lost."
+        ],
+        correct: 1
+    },
+    {
+        statements: [
+            "The first answer is always wrong.",
+            "Pain means you are alive.",
+            "Nothing matters anymore.",
+            "You will be forgiven.",
+            "The game is watching you."
+        ],
+        correct: 4
+    },
+    {
+        statements: [
+            "Hope is dangerous here.",
+            "The rules never change.",
+            "Someone escaped this game.",
+            "Trust ends games.",
+            "Your fear is justified."
+        ],
+        correct: 0
+    },
+    {
+        statements: [
+            "You are alone.",
+            "This choice defines you.",
+            "There is no right answer.",
+            "Survival requires sacrifice.",
+            "You should stop thinking."
+        ],
+        correct: 3
+    },
+    {
+        statements: [
+            "Every player doubts themselves.",
+            "You can undo this decision.",
+            "Regret comes later.",
+            "The game respects honesty.",
+            "Silence means safety."
+        ],
+        correct: 0
+    }
+];
+
+/* ---------------------------
+   ELEMENTS
+--------------------------- */
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const statementsBox = document.getElementById("statements");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+const timerEl = document.getElementById("timer");
+
+let correctIndex = -1;
+let timer = 5;
+let interval = null;
+
+/* ---------------------------
+   START GAME
+--------------------------- */
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+    startRound();
+};
+
+function startRound() {
+    clearInterval(interval);
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+    statementsBox.innerHTML = "";
+
+    timer = 20;
+    timerEl.textContent = `Time Left: ${timer}s`;
+
+    const scene = scenarios[Math.floor(Math.random() * scenarios.length)];
+    correctIndex = scene.correct;
+
+    scene.statements.forEach((text, index) => {
+        const btn = document.createElement("button");
+        btn.className = "statement-btn";
+        btn.textContent = text;
+        btn.onclick = () => choose(index);
+        statementsBox.appendChild(btn);
+    });
+
+    startTimer();
+}
+
+/* ---------------------------
+   TIMER
+--------------------------- */
+function startTimer() {
+    interval = setInterval(() => {
+        timer--;
+        timerEl.textContent = `Time Left: ${timer}s`;
+
+        if (timer <= 0) {
+            clearInterval(interval);
+            failGame("⏳ Time’s up! Trust faster.");
+        }
+    }, 1000);
+}
+
+/* ---------------------------
+   CHOICE HANDLER
+--------------------------- */
+function choose(index) {
+    clearInterval(interval);
+
+    if (index === correctIndex) {
+        resultEl.textContent = "✔ You trusted correctly.";
+        resultEl.style.color = "#00ff66";
+
+        nextBtn.style.display = "inline-block";
+        fetch("/complete/hearts/2", { method: "POST" });
+    } else {
+        failGame("❌ Your trust was misplaced.");
+    }
+}
+
+/* ---------------------------
+   FAIL
+--------------------------- */
+function failGame(msg) {
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+
+    setTimeout(() => {
+        startRound();
+    }, 1800);
+}
+</script>
+
+<style>
+.timer-text {
+    font-size: 22px;
+    color: #ffcccc;
+    margin-top: 10px;
+}
+
+.statement-box {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 25px;
+}
+
+.statement-btn {
+    padding: 16px;
+    font-size: 18px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.6);
+    color: #ffecec;
+    border: 2px solid pink;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.statement-btn:hover {
+    background: pink;
+    color: black;
+    transform: scale(1.03);
+}
+
+.instruction-text {
+    font-size: 22px;
+    color: #ffcccc;
+    margin-top: 15px;
+}
+
+.button-row {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+</style>
+
+{% endblock %}
