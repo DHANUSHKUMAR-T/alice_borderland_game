@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂣 Diamonds 3 – Pattern Break</h2>
+
+        <p class="game-text">
+            One item does <b>NOT</b> belong.<br>
+            👉 Click the odd one out.
+        </p>
+
+        <div class="emotion-hint">
+            💎 Logic &gt; appearance<br>
+            🧠 Patterns don’t lie
+        </div>
+
+        <!-- START -->
+        <button id="start-btn" class="btn red-btn">Start Game</button>
+
+        <!-- GAME AREA -->
+        <div id="game-area" style="display:none;">
+
+            <p id="timer" class="timer-text">Time Left: 5s</p>
+            <p id="round-info" class="round-text">Round 1 / 3</p>
+
+            <!-- PATTERN AREA -->
+            <div id="pattern-area" class="pattern-area"></div>
+
+            <p id="result" class="result-text"></p>
+
+            <!-- NAV -->
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FLOATING DIAMONDS 3 CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/3D.png"
+             class="card-image glow-float"
+             alt="Diamonds 3">
+    </div>
+
+</div>
+
+<script>
+/* ===============================
+   PATTERN DATA
+================================ */
+const patterns = [
+    { items: ["◆","◆","◆","◆","◆","◆","◆","◆","◇","◆","◆","◆","◆","◆","◆"], odd: 8 },
+    { items: ["2","4","6","8","16","20","27"], odd: 6 },
+    { items: ["🔴","🔵","🟢","⭕"], odd: 3 },
+    { items: ["▲","■","▲","▲","▲","▲","▲","▲","▲","▲","▲","▲","▲","▲","▲"], odd: 1 },
+    { items: ["10","20","30","40","45"], odd: 4 },
+    { items: ["🙂","🙂","🙂","😕","🙂"], odd: 3 },
+    { items: ["❤️","❤️","💔","❤️","❤️"], odd: 2 },
+    { items: ["⬆️","⬆️","⬆️","⬇️","⬆️"], odd: 3 },
+    { items: ["🌳","🌳","🌳","🚗","🌳"], odd: 3 },
+    { items: ["🔔","🔔","🔔","🔕","🔔"], odd: 3 },
+    { items: ["🔒","🔒","🔒","🔓","🔒"], odd: 3 },
+    { items: ["⬛","⬛","⬜","⬛","⬛"], odd: 2 },
+    { items: ["🕒","🕓","🕔","🕕","🕙"], odd: 4 },
+    { items: ["📶","📶","📶","❌","📶"], odd: 3 },
+    { items: ["🔥","🔥","🔥","💧","🔥"], odd: 3 },
+    { items: ["🙂","🙂","🙃","🙂","🙂"], odd: 2 }
+];
+
+/* ===============================
+   ELEMENTS
+================================ */
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const patternArea = document.getElementById("pattern-area");
+const timerEl = document.getElementById("timer");
+const resultEl = document.getElementById("result");
+const roundInfo = document.getElementById("round-info");
+const nextBtn = document.getElementById("next-btn");
+
+/* ===============================
+   STATE
+================================ */
+let round = 1;
+const TOTAL_ROUNDS = 3;
+let timer = 5;
+let interval = null;
+let currentPattern = null;
+let active = false;
+
+/* ===============================
+   START GAME
+================================ */
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+    round = 1;
+    loadRound();
+};
+
+/* ===============================
+   LOAD ROUND
+================================ */
+function loadRound() {
+    clearInterval(interval);
+    patternArea.innerHTML = "";
+    resultEl.textContent = "";
+    active = true;
+
+    timer = 5;
+    timerEl.textContent = `Time Left: ${timer}s`;
+    roundInfo.textContent = `Round ${round} / ${TOTAL_ROUNDS}`;
+
+    currentPattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+    currentPattern.items.forEach((item, index) => {
+        const el = document.createElement("div");
+        el.className = "pattern-item";
+        el.textContent = item;
+
+        el.onclick = () => {
+            if (!active) return;
+            checkAnswer(index);
+        };
+
+        patternArea.appendChild(el);
+    });
+
+    startTimer();
+}
+
+/* ===============================
+   TIMER
+================================ */
+function startTimer() {
+    interval = setInterval(() => {
+        timer--;
+        timerEl.textContent = `Time Left: ${timer}s`;
+
+        if (timer <= 0) {
+            clearInterval(interval);
+            fail("⏳ Patterns don’t wait.");
+        }
+    }, 1000);
+}
+
+/* ===============================
+   CHECK ANSWER
+================================ */
+function checkAnswer(index) {
+    active = false;
+    clearInterval(interval);
+
+    if (index === currentPattern.odd) {
+        resultEl.textContent = "💎 Pattern broken. Logic holds.";
+        resultEl.style.color = "#00ff66";
+
+        setTimeout(() => {
+            if (round < TOTAL_ROUNDS) {
+                round++;
+                loadRound();
+            } else {
+                finishGame();
+            }
+        }, 1200);
+    } else {
+        fail("❌ Looks similar — logic fails.");
+    }
+}
+
+/* ===============================
+   FAIL
+================================ */
+function fail(msg) {
+    active = false;
+    clearInterval(interval);
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ffcccc";
+    setTimeout(loadRound, 1400);
+}
+
+/* ===============================
+   FINISH GAME
+================================ */
+function finishGame() {
+    resultEl.textContent =
+        "💎 Logic mastered. You see beyond patterns.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+    fetch("/complete/diamonds/3", { method: "POST" });
+}
+</script>
+
+<style>
+.pattern-area {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 14px;
+    margin-top: 25px;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pattern-item {
+    aspect-ratio: 1 / 1;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #ff4444;
+    border-radius: 12px;
+    font-size: 26px;
+    font-weight: bold;
+    color: #ffecec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: floatSlight 2s ease-in-out infinite;
+    transition: 0.2s;
+}
+
+.pattern-item:hover {
+    transform: scale(1.15);
+    background: #ff4444;
+    color: black;
+}
+
+@keyframes floatSlight {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+}
+
+.timer-text, .round-text {
+    font-size: 22px;
+    color: #ffcccc;
+}
+
+.emotion-hint {
+    font-size: 16px;
+    color: #ffcccc;
+    opacity: 0.85;
+}
+
+.button-row {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+</style>
+
+{% endblock %}

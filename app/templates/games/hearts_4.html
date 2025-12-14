@@ -12,13 +12,39 @@
             👉 Choose with your <b>heart</b>.
         </p>
 
+        <div class="emotion-hint">
+            ❌ No “wrong answer”, only feeling based<br>
+            ❤️ Emotional weight &gt; logic
+        </div>
+
         <!-- START -->
         <button id="start-btn" class="btn red-btn">Start Choice</button>
+
+        <!-- FEELING vs WEIGHT INFO (HIDDEN INITIALLY) -->
+<div id="choice-info" class="choice-info">
+    <div class="info-block feeling">
+        ❤️ <b>What is FEELING?</b><br>
+        <span>“This hurts, but I care.”</span><br>
+        <h4>>>> Choosing with empathy and attachment.</h4>
+        <h5>>>> Feeling = choosing with emotion, empathy, attachment</h5>
+    </div>
+
+
+    <div class="info-block weight">
+        ⚖️ <b>What is WEIGHT?</b><br>
+        <span>“This is heavy, but necessary.”</span><br>
+        <h4>>>> Choosing with responsibility and consequence.</h4>
+        <h5>>>> Weight = choosing with responsibility, consequence, realism</h5>
+    </div>
+</div>
+
 
         <!-- GAME AREA -->
         <div id="game-area" style="display:none;">
 
-            <p id="timer" class="timer-text">Time Left: 10s</p>
+            <p id="timer" class="timer-text">Time Left: 9s</p>
+
+            <p id="progress" class="progress-text">Choice 1 of 3</p>
 
             <!-- DILEMMA -->
             <div id="dilemma" class="dilemma-box"></div>
@@ -47,9 +73,9 @@
 
     </div>
 
-    <!-- FLOATING HEARTS 4 -->
+    <!-- FLOATING HEARTS 4 CARD -->
     <div class="floating-card">
-        <img src="{{ url_for('static', filename='images/heart_4.png') }}"
+        <img src="https://deckofcardsapi.com/static/img/4H.png"
              class="card-image glow-float"
              alt="Hearts 4">
     </div>
@@ -57,130 +83,292 @@
 </div>
 
 <script>
-/* ===========================
-   MORAL DILEMMAS
-=========================== */
-const dilemmas = [
-    {
-        text: "You can save only ONE person.",
-        choices: ["A stranger", "Your close friend"]
-    },
-    {
-        text: "Telling the truth will hurt someone deeply.",
-        choices: ["Tell the truth", "Protect their feelings"]
-    },
-    {
-        text: "You promised to stay, but leaving could save you.",
-        choices: ["Keep your promise", "Save yourself"]
-    },
-    {
-        text: "Someone you love made a terrible mistake.",
-        choices: ["Stand by them", "Walk away"]
-    },
-    {
-        text: "You can stop the pain now, or wait for hope.",
-        choices: ["End it now", "Hold on longer"]
-    }
-];
-
-/* ===========================
-   ELEMENTS
-=========================== */
-const startBtn = document.getElementById("start-btn");
-const gameArea = document.getElementById("game-area");
-const dilemmaEl = document.getElementById("dilemma");
-const choicesEl = document.getElementById("choices");
-const resultEl = document.getElementById("result");
-const timerEl = document.getElementById("timer");
-const nextBtn = document.getElementById("next-btn");
-
-let timer = 10;
-let timerInterval = null;
-let acceptedIndex = -1;
-
-/* ===========================
-   START GAME
-=========================== */
-startBtn.onclick = () => {
-    startBtn.style.display = "none";
-    gameArea.style.display = "block";
-    loadDilemma();
-};
-
-function loadDilemma() {
-    clearInterval(timerInterval);
-    resultEl.textContent = "";
-    nextBtn.style.display = "none";
-    choicesEl.innerHTML = "";
-
-    timer = 10;
-    timerEl.textContent = `Time Left: ${timer}s`;
-
-    const d = dilemmas[Math.floor(Math.random() * dilemmas.length)];
-    dilemmaEl.textContent = d.text;
-
-    // Randomly choose an internally accepted option
-    acceptedIndex = Math.floor(Math.random() * d.choices.length);
-
-    d.choices.forEach((choice, index) => {
-        const btn = document.createElement("button");
-        btn.className = "choice-btn";
-        btn.textContent = choice;
-        btn.onclick = () => choose(index);
-        choicesEl.appendChild(btn);
-    });
-
-    startTimer();
-}
-
-/* ===========================
-   TIMER
-=========================== */
-function startTimer() {
-    timerInterval = setInterval(() => {
-        timer--;
-        timerEl.textContent = `Time Left: ${timer}s`;
-
-        if (timer <= 0) {
-            clearInterval(timerInterval);
-            gentleEnd();
+    /* ===========================
+       DILEMMAS POOL
+    =========================== */
+    const dilemmas = [
+        {
+            text: "Someone you love made a terrible mistake.",
+            choices: [
+                { text: "Stand by them", type: "FEELING" },
+                { text: "Walk away", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "Telling the truth will hurt deeply.",
+            choices: [
+                { text: "Protect their feelings", type: "FEELING" },
+                { text: "Tell the truth", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "You can save only one person.",
+            choices: [
+                { text: "Your friend", type: "FEELING" },
+                { text: "A stranger", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "Forgiving may hurt you again.",
+            choices: [
+                { text: "Forgive anyway", type: "FEELING" },
+                { text: "Protect yourself", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "Helping them will cost you your future.",
+            choices: [
+                { text: "Help them anyway", type: "FEELING" },
+                { text: "Protect your future", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "You promised to stay, but staying will hurt you.",
+            choices: [
+                { text: "Keep the promise", type: "FEELING" },
+                { text: "Leave to heal", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "Someone asks for forgiveness too late.",
+            choices: [
+                { text: "Forgive them", type: "FEELING" },
+                { text: "Move on without them", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "Speaking up could protect others, but cost you everything.",
+            choices: [
+                { text: "Speak up", type: "WEIGHT" },
+                { text: "Stay silent", type: "FEELING" }
+            ]
+        },
+        {
+            text: "You know the truth, but revealing it will destroy a family.",
+            choices: [
+                { text: "Keep the secret", type: "FEELING" },
+                { text: "Reveal the truth", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "Someone depends on you, but you are exhausted.",
+            choices: [
+                { text: "Be there for them", type: "FEELING" },
+                { text: "Take care of yourself", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "Staying loyal means staying in pain.",
+            choices: [
+                { text: "Stay loyal", type: "FEELING" },
+                { text: "Choose peace", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "You can fix the problem, but no one will thank you.",
+            choices: [
+                { text: "Fix it anyway", type: "WEIGHT" },
+                { text: "Walk away", type: "FEELING" }
+            ]
+        },
+        {
+            text: "They hurt you, but they are the only one who understands you.",
+            choices: [
+                { text: "Give them another chance", type: "FEELING" },
+                { text: "Protect yourself", type: "WEIGHT" }
+            ]
+        },
+        {
+            text: "Letting go will hurt now, staying will hurt forever.",
+            choices: [
+                { text: "Let go", type: "WEIGHT" },
+                { text: "Hold on", type: "FEELING" }
+            ]
+        },        
+        {
+            text: "Leaving keeps you safe, staying keeps a promise.",
+            choices: [
+                { text: "Stay", type: "FEELING" },
+                { text: "Leave", type: "WEIGHT" }
+            ]
         }
-    }, 1000);
-}
-
-/* ===========================
-   CHOICE HANDLER
-=========================== */
-function choose(index) {
-    clearInterval(timerInterval);
-
-    resultEl.textContent =
-        index === acceptedIndex
-        ? "💗 Your choice feels right."
-        : "💭 Every choice carries weight.";
-
-    resultEl.style.color = "#ffcccc";
-
-    nextBtn.style.display = "inline-block";
-    fetch("/complete/hearts/4", { method: "POST" });
-}
-
-/* ===========================
-   TIME END
-=========================== */
-function gentleEnd() {
-    resultEl.textContent = "⏳ Sometimes not choosing is a choice too.";
-    resultEl.style.color = "#ffcccc";
-
-    nextBtn.style.display = "inline-block";
-}
-</script>
+    ];
+    
+    /* ===========================
+       FINAL THOUGHTS
+    =========================== */
+    const feelingThoughts = [
+        "❤️ You chose with empathy. Even when it hurts, your heart speaks louder.",
+        "❤️ You chose connection over distance.",
+        "❤️ You listened to feelings instead of fear.",
+        "❤️ Your compassion guided your decisions.",
+        "❤️ You stayed human in a difficult moment."
+    ];
+    
+    const weightThoughts = [
+        "⚖️ You chose responsibility over comfort.",
+        "⚖️ You accepted the weight of consequence.",
+        "⚖️ You stood firm when emotions pulled you away.",
+        "⚖️ You carried the burden with strength.",
+        "⚖️ Sometimes strength means choosing the hard path."
+    ];
+    
+    /* ===========================
+       ELEMENTS
+    =========================== */
+    const startBtn = document.getElementById("start-btn");
+    const gameArea = document.getElementById("game-area");
+    const dilemmaEl = document.getElementById("dilemma");
+    const choicesEl = document.getElementById("choices");
+    const resultEl = document.getElementById("result");
+    const timerEl = document.getElementById("timer");
+    const nextBtn = document.getElementById("next-btn");
+    const progressEl = document.getElementById("progress");
+    const infoPanel = document.getElementById("choice-info");
+    
+    /* ===========================
+       STATE
+    =========================== */
+    let selectedDilemmas = [];
+    let currentIndex = 0;
+    let feelingCount = 0;
+    let weightCount = 0;
+    let timer = 9;
+    let interval = null;
+    
+    /* ===========================
+       START GAME
+    =========================== */
+    startBtn.onclick = () => {
+        startBtn.style.display = "none";
+        gameArea.style.display = "block";
+        infoPanel.style.display = "flex";
+    
+        // 🔥 PICK 3 RANDOM DILEMMAS
+        selectedDilemmas = [...dilemmas]
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3);
+    
+        currentIndex = 0;
+        feelingCount = 0;
+        weightCount = 0;
+    
+        loadQuestion();
+    };
+    
+    /* ===========================
+       LOAD QUESTION
+    =========================== */
+    function loadQuestion() {
+        clearInterval(interval);
+        resultEl.textContent = "";
+        choicesEl.innerHTML = "";
+    
+        timer = 9;
+        timerEl.textContent = `Time Left: ${timer}s`;
+        progressEl.textContent = `Choice ${currentIndex + 1} of 3`;
+    
+        const q = selectedDilemmas[currentIndex];
+        dilemmaEl.textContent = q.text;
+    
+        q.choices.forEach(choice => {
+            const btn = document.createElement("button");
+            btn.className = "choice-btn";
+            btn.textContent = choice.text;
+            btn.onclick = () => selectChoice(choice.type);
+            choicesEl.appendChild(btn);
+        });
+    
+        startTimer();
+    }
+    
+    /* ===========================
+       TIMER
+    =========================== */
+    function startTimer() {
+        interval = setInterval(() => {
+            timer--;
+            timerEl.textContent = `Time Left: ${timer}s`;
+    
+            if (timer <= 0) {
+                clearInterval(interval);
+                selectChoice("WEIGHT");
+            }
+        }, 1000);
+    }
+    
+    /* ===========================
+       CHOICE HANDLER
+    =========================== */
+    function selectChoice(type) {
+        clearInterval(interval);
+    
+        if (type === "FEELING") feelingCount++;
+        else weightCount++;
+    
+        currentIndex++;
+    
+        if (currentIndex < 3) {
+            loadQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+    
+    /* ===========================
+       FINAL RESULT
+    =========================== */
+    function showFinalResult() {
+        clearInterval(interval);
+    
+        // 🔥 REMOVE QUESTION UI COMPLETELY
+        dilemmaEl.remove();
+        choicesEl.remove();
+        progressEl.remove();
+        timerEl.remove();
+    
+        let majorityText = "";
+        let finalMessage = "";
+    
+        if (feelingCount >= 2) {
+            majorityText = "💗 You won by majority of FEELING choices.";
+            finalMessage =
+                feelingThoughts[Math.floor(Math.random() * feelingThoughts.length)];
+        } else {
+            majorityText = "⚖️ You won by majority of WEIGHTED choices.";
+            finalMessage =
+                weightThoughts[Math.floor(Math.random() * weightThoughts.length)];
+        }
+    
+        resultEl.innerHTML = `
+            <div class="majority-text">${majorityText}</div>
+            <div class="final-thought">${finalMessage}</div>
+        `;
+    
+        nextBtn.style.display = "inline-block";
+        fetch("/complete/hearts/4", { method: "POST" });
+    }
+    </script>
+    
 
 <style>
+.emotion-hint {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #ffcccc;
+    opacity: 0.85;
+}
+
+.progress-text {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #ffdddd;
+}
+
 .dilemma-box {
     font-size: 24px;
     font-weight: bold;
-    margin: 25px 0;
+    margin: 22px 0;
     padding: 18px;
     background: rgba(0,0,0,0.55);
     border-left: 4px solid pink;
@@ -222,6 +410,58 @@ function gentleEnd() {
     justify-content: center;
     gap: 25px;
 }
+.majority-text {
+    margin-top: 10px;
+    font-size: 18px;
+    color:rgb(94, 255, 0);
+    opacity: 0.9;
+}
+
+.final-thought {
+    margin-top: 14px;
+    font-size: 22px;
+    color: #ffcccc;
+    font-weight: bold;
+}
+/* FEELING vs WEIGHT PANEL */
+.choice-info {
+    position: absolute;
+    left: -300px;
+    top: 5px;
+    width: 260px;
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 6;
+}
+
+.info-block {
+    background: rgba(0, 0, 0, 0.65);
+    border-left: 4px solid;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #ffecec;
+}
+
+.info-block span {
+    display: block;
+    font-style: italic;
+    color: #ffcccc;
+    margin: 6px 0;
+}
+
+/* Feeling style */
+.info-block.feeling {
+    border-color: #ff4d6d;
+}
+
+/* Weight style */
+.info-block.weight {
+    border-color: #ffd166;
+}
+
 </style>
 
 {% endblock %}

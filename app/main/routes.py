@@ -139,25 +139,51 @@ def spades_5():
 @login_required
 def hearts_A():
     return render_template("games/hearts_A.html",
-                           title="hearts A – Emotion Match")
+                           title="Hearts A – Emotion Match")
     
 @main.route("/game/hearts/2")
 @login_required
 def hearts_2():
     return render_template("games/hearts_2.html",
-                           title="hearts 2 – Trust or Trap")
+                           title="Hearts 2 – Trust or Trap")
 
 @main.route("/game/hearts/3")
 @login_required
 def hearts_3():
     return render_template("games/hearts_3.html",
-                           title="hearts 3 – Heartbeat Rhythm")
+                           title="Hearts 3 – Heartbeat Rhythm")
     
 @main.route("/game/hearts/4")
 @login_required
 def hearts_4():
     return render_template("games/hearts_4.html",
-                           title="hearts 4 – HMoral Choice")
+                           title="Hearts 4 – Moral Choice")
+
+@main.route("/game/hearts/5")
+@login_required
+def hearts_5():
+    return render_template("games/hearts_5.html",
+                           title="Hearts 5 – Focus Under Emotion")
+    
+@main.route("/game/diamonds/A")
+@login_required
+def diamonds_A():
+    return render_template("games/diamonds_A.html",
+                           title="Diamonds A –  Value Sort")
+
+@main.route("/game/diamonds/2")
+@login_required
+def diamonds_2():
+    return render_template("games/diamonds_2.html",
+                           title="Diamonds 2 – Logic Lock")
+    
+@main.route("/game/diamonds/3")
+@login_required
+def diamonds_3():
+    return render_template("games/diamonds_3.html",
+                           title="Diamonds 3 – Pattern Break")
+    
+
 
 
 # ---------------------------
