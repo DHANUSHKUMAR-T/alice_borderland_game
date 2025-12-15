@@ -488,7 +488,7 @@ main.center-content {
     background: rgba(0, 0, 0, 0.55); /* dark glass */
     backdrop-filter: blur(6px);
     border-radius: 14px;
-    padding: 25px 150px;
+    padding: 25px 25px;
     box-shadow: 0 0 30px rgba(0,0,0,0.6);
 }
 

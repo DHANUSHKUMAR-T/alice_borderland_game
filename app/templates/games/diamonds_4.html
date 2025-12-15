@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+  <div class="game-card-display">
+
+    <h2 class="menu-title">🂤 Diamonds 4 – Risk vs Reward</h2>
+
+    <p class="game-text">
+      Life rewards clarity, not courage alone.<br>
+      👉 Choose the option with the <b>better value</b>.
+    </p>
+
+    <div class="emotion-hint">
+      💎 Insight over impulse<br>
+      🧠 Expected value > emotion
+    </div>
+
+    <button id="start-btn" class="btn red-btn">Start Game</button>
+
+    <div id="game-area" style="display:none;">
+
+      <p id="timer" class="timer-text">Time Left: 16s</p>
+      <p id="round-info" class="round-text">Round 1 / 3</p>
+
+      <!-- ✅ UX: Situation placed clearly -->
+      <p id="situation" class="situation-text"></p>
+
+      <div class="choice-area">
+        <div id="optionA" class="choice-box"></div>
+        <div id="optionB" class="choice-box"></div>
+      </div>
+
+      <p id="result" class="result-text"></p>
+
+      <div class="button-row">
+        <button id="continue-btn"
+                class="btn card-btn"
+                style="display:none;">
+          Continue →
+        </button>
+
+        <a id="next-btn"
+           href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+           class="btn card-btn"
+           style="display:none;">
+          Next Card →
+        </a>
+
+        <a href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+           class="btn card-btn">
+          Back
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="floating-card">
+    <img src="https://deckofcardsapi.com/static/img/4D.png"
+         class="card-image glow-float"
+         alt="Diamonds 4">
+  </div>
+</div>
+
+<script>
+/* ===============================
+   SCENARIOS (REAL EV)
+================================ */
+const scenarios = [
+  {
+    situation: "You still have an urgent loan to clear this month.",
+    A: { text: "Pay ₹9,000 now and close the loan safely", ev: 9000 },
+    B: { text: "60% chance to earn ₹12,000 by waiting one more week", ev: 0.6 * 12000 }
+  },
+  {
+    situation: "You just lost your job.",
+    A: { text: "Accept ₹18,000/month starting tomorrow", ev: 18000 },
+    B: { text: "30% chance of ₹50,000/month startup role", ev: 0.3 * 50000 }
+  },
+  {
+    situation: "You saved money for two years.",
+    A: { text: "Fixed return investment (₹6,000/year)", ev: 6000 },
+    B: { text: "50% chance to double, 50% chance to lose half", ev: 2500 }
+  },
+  {
+    situation: "You need money to relocate.",
+    A: { text: "Get ₹900 today", ev: 900 },
+    B: { text: "60% chance to get ₹1,200 next week", ev: 720 }
+  }
+];
+
+/* ===============================
+   STATE
+================================ */
+let round = 1;
+const TOTAL_ROUNDS = 5;
+let timer = 16;
+let interval = null;
+let active = false;
+let currentScenario = null;
+let userChose = false;
+
+/* ===============================
+   ELEMENTS
+================================ */
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const optionA = document.getElementById("optionA");
+const optionB = document.getElementById("optionB");
+const timerEl = document.getElementById("timer");
+const roundInfo = document.getElementById("round-info");
+const situationEl = document.getElementById("situation");
+const resultEl = document.getElementById("result");
+const continueBtn = document.getElementById("continue-btn");
+const nextBtn = document.getElementById("next-btn");
+
+/* ===============================
+   START GAME
+================================ */
+startBtn.onclick = () => {
+  startBtn.style.display = "none";
+  gameArea.style.display = "block";
+  round = 1;
+  loadRound();
+};
+
+/* ===============================
+   LOAD ROUND
+================================ */
+function loadRound() {
+  clearInterval(interval);
+  active = true;
+  userChose = false;
+  timer = 16;
+
+  continueBtn.style.display = "none";
+
+  currentScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+
+  timerEl.textContent = `Time Left: ${timer}s`;
+  roundInfo.textContent = `Round ${round} / ${TOTAL_ROUNDS}`;
+  situationEl.textContent = "🧠 Situation: " + currentScenario.situation;
+
+  optionA.textContent = `Option A\n${currentScenario.A.text}`;
+  optionB.textContent = `Option B\n${currentScenario.B.text}`;
+
+  optionA.classList.remove("disabled");
+  optionB.classList.remove("disabled");
+
+  optionA.onclick = () => choose("A");
+  optionB.onclick = () => choose("B");
+
+  resultEl.textContent = "";
+  startTimer();
+}
+
+/* ===============================
+   TIMER
+================================ */
+function startTimer() {
+    interval = setInterval(() => {
+      timer--;
+      timerEl.textContent = `Time Left: ${timer}s`;
+  
+      if (timer <= 0) {
+        clearInterval(interval);
+  
+        // ❗ USER DID NOT CHOOSE → SAME ROUND, NEW QUESTION
+        if (!userChose) {
+          resultEl.textContent =
+            "⏳ Time passed. No decision made. Try again.";
+          resultEl.style.color = "#ffcccc";
+  
+          setTimeout(() => {
+            loadRound(); // 🔁 SAME ROUND
+          }, 1200);
+  
+          return;
+        }
+      }
+    }, 1000);
+  }
+  
+/* ===============================
+   USER CHOICE
+================================ */
+function choose(choice) {
+    if (!active) return;
+    userChose = true;
+    clearInterval(interval);
+    revealInsight(choice);
+  }
+  
+
+/* ===============================
+   INSIGHT (NO AUTO MOVE)
+================================ */
+function revealInsight(choice) {
+  active = false;
+
+  optionA.classList.add("disabled");
+  optionB.classList.add("disabled");
+
+  const evA = currentScenario.A.ev;
+  const evB = currentScenario.B.ev;
+
+  let insight =
+    evA > evB
+      ? `Option A has higher value (₹${evA} vs ₹${evB}). Stability wins here.`
+      : `Option B has higher value (₹${evB} vs ₹${evA}). Risk is justified here.`;
+
+  if (!choice) {
+    insight =
+      "You chose not to react. In real decisions, delay itself carries meaning. " + insight;
+  }
+
+  resultEl.textContent = "💎 Insight: " + insight;
+  resultEl.style.color = "#00ff66";
+
+  continueBtn.style.display = "inline-block";
+}
+
+/* ===============================
+   CONTINUE
+================================ */
+continueBtn.onclick = () => {
+  continueBtn.style.display = "none";
+
+  if (round < TOTAL_ROUNDS) {
+    round++;
+    loadRound();
+  } else {
+    finishGame();
+  }
+};
+
+/* ===============================
+   FINISH
+================================ */
+function finishGame() {
+  resultEl.textContent =
+    "💎 You measured risk with clarity, not fear.";
+  resultEl.style.color = "#00ff66";
+  nextBtn.style.display = "inline-block";
+  fetch("/complete/diamonds/4", { method: "POST" });
+}
+</script>
+
+<style>
+.situation-text {
+  margin: 8px 0 14px;
+  font-size: 15px;
+  color: #ffcccc;
+  text-align: center;
+}
+
+.choice-area {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.choice-box {
+  width: 240px;
+  min-height: 90px;
+  padding: 14px;
+  background: rgba(0,0,0,0.6);
+  border: 2px solid #ff4444;
+  border-radius: 14px;
+  font-size: 15px;
+  color: #ffecec;
+  white-space: pre-line;
+  cursor: pointer;
+}
+
+.choice-box.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.timer-text, .round-text {
+  font-size: 22px;
+  color: #ffcccc;
+}
+</style>
+
+{% endblock %}

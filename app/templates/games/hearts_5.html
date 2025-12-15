@@ -50,7 +50,7 @@
 
     </div>
 
-    <!-- FLOATING HEARTS 5 CARD -->
+    <!-- FLOATING HEART CARD (NON-CLICKABLE) -->
     <div class="floating-card">
         <img src="https://deckofcardsapi.com/static/img/5H.png"
              class="card-image glow-float"
@@ -74,12 +74,12 @@ const heartTypes = [
 /* ===============================
    ELEMENTS
 ================================ */
-const startBtn = document.getElementById("start-btn");
+const startBtn  = document.getElementById("start-btn");
 const gameArea = document.getElementById("game-area");
 const playArea = document.getElementById("play-area");
-const timerEl = document.getElementById("timer");
+const timerEl  = document.getElementById("timer");
 const resultEl = document.getElementById("result");
-const nextBtn = document.getElementById("next-btn");
+const nextBtn  = document.getElementById("next-btn");
 const roundInfo = document.getElementById("round-info");
 
 /* ===============================
@@ -87,31 +87,33 @@ const roundInfo = document.getElementById("round-info");
 ================================ */
 let timer = 6;
 let interval = null;
+let spawnTimeout = null;
 let active = false;
 let round = 1;
-let happyClicks = 0;      // ✅ DECLARED
+let happyClicks = 0;
 const TOTAL_ROUNDS = 3;
 
 /* ===============================
    START GAME
 ================================ */
-startBtn.onclick = () => {
+startBtn.addEventListener("click", () => {
     startBtn.style.display = "none";
     gameArea.style.display = "block";
     round = 1;
     startRound();
-};
+});
 
 /* ===============================
    START ROUND
 ================================ */
 function startRound() {
     clearInterval(interval);
+    clearTimeout(spawnTimeout);
+
     playArea.innerHTML = "";
     resultEl.textContent = "";
     active = true;
-
-    happyClicks = 0; // ✅ RESET EACH ROUND
+    happyClicks = 0;
 
     roundInfo.textContent = `Round ${round} / ${TOTAL_ROUNDS}`;
     startTimer();
@@ -137,7 +139,7 @@ function startTimer() {
 }
 
 /* ===============================
-   SPAWN HEARTS
+   SPAWN HEARTS (MOBILE SAFE)
 ================================ */
 function spawnHearts() {
     if (!active) return;
@@ -150,20 +152,25 @@ function spawnHearts() {
     el.style.left = Math.random() * 80 + "%";
     el.style.animationDuration = (3 + Math.random() * 2) + "s";
 
-    el.onclick = () => {
+    const handleTap = (e) => {
+        e.stopPropagation();
         if (!active) return;
 
         if (heart.happy) {
-            happyClicks++;      // ✅ COUNT HAPPY CLICK
+            happyClicks++;
             el.remove();
         } else {
             failRound("💭 Not every emotion needs action.");
         }
     };
 
+    el.addEventListener("click", handleTap);
+    el.addEventListener("touchstart", handleTap, { passive: true });
+
     playArea.appendChild(el);
+
     setTimeout(() => el.remove(), 5000);
-    setTimeout(spawnHearts, 600);
+    spawnTimeout = setTimeout(spawnHearts, 600);
 }
 
 /* ===============================
@@ -171,14 +178,13 @@ function spawnHearts() {
 ================================ */
 function finishRound() {
     active = false;
+    clearTimeout(spawnTimeout);
 
-    // ❌ DOING NOTHING IS FAILURE
     if (happyClicks === 0) {
         failRound("🧠 Focus means acting at the right moment.");
         return;
     }
 
-    // ✅ ROUND PASSED
     if (round < TOTAL_ROUNDS) {
         resultEl.textContent = "❤️ Good focus. Stay calm.";
         resultEl.style.color = "#ffcccc";
@@ -196,6 +202,9 @@ function finishRound() {
    FINAL SUCCESS
 ================================ */
 function finishGame() {
+    active = false;
+    clearTimeout(spawnTimeout);
+
     resultEl.textContent =
         "❤️ You stayed focused even when emotions surrounded you.";
     resultEl.style.color = "#00ff66";
@@ -208,19 +217,24 @@ function finishGame() {
    FAIL (RESTART ROUND)
 ================================ */
 function failRound(msg) {
-    clearInterval(interval);
     active = false;
+    clearInterval(interval);
+    clearTimeout(spawnTimeout);
 
     resultEl.textContent = msg;
     resultEl.style.color = "#ffcccc";
 
-    setTimeout(() => {
-        startRound();
-    }, 1400);
+    setTimeout(startRound, 1400);
 }
 </script>
 
 <style>
+/* GENERAL MOBILE SAFETY */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* PLAY AREA */
 .play-area {
     position: relative;
     height: 300px;
@@ -228,19 +242,30 @@ function failRound(msg) {
     overflow: hidden;
 }
 
+/* FLOATING HEARTS */
 .floating-heart {
     position: absolute;
     bottom: -40px;
     font-size: 34px;
     cursor: pointer;
     animation: floatUp linear forwards;
+    z-index: 9999;
+    pointer-events: auto;
+    touch-action: manipulation;
 }
 
+/* FLOAT ANIMATION */
 @keyframes floatUp {
     from { transform: translateY(0); opacity: 1; }
-    to { transform: translateY(-350px); opacity: 0; }
+    to   { transform: translateY(-350px); opacity: 0; }
 }
 
+/* DISABLE TOUCH ON CARD IMAGE */
+.floating-card {
+    pointer-events: none;
+}
+
+/* TEXT */
 .timer-text, .round-text {
     font-size: 22px;
     color: #ffcccc;

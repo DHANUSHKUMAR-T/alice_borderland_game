@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+  <div class="game-card-display">
+
+    <h2 class="menu-title">🂥 Diamonds 5 – Silence Test</h2>
+
+    <p class="game-text">
+      Control your environment.<br>
+      👉 Maintain calm, controlled silence.
+    </p>
+
+    <div class="emotion-hint">
+      🎙️ Discipline > reaction<br>
+      💎 Control > effort
+    </div>
+
+    <button id="start-btn" class="btn red-btn">Allow Microphone</button>
+
+    <div id="game-area" style="display:none;">
+      <p id="timer" class="timer-text">Time Left: 10s</p>
+
+      <p id="instruction" class="situation-text">
+        🔇 Stay silent. Control your space.
+      </p>
+
+      <!-- SOUND METER -->
+      <div class="meter">
+        <div id="meter-fill"></div>
+      </div>
+
+      <p id="result" class="result-text"></p>
+
+      <div class="button-row">
+        <a id="next-btn"
+           href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+           class="btn card-btn"
+           style="display:none;">
+          Next Card →
+        </a>
+
+        <a href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+           class="btn card-btn">
+          Back
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="floating-card">
+    <img src="https://deckofcardsapi.com/static/img/5D.png"
+         class="card-image glow-float"
+         alt="Diamonds 5">
+  </div>
+</div>
+
+<script>
+/* ===============================
+   STATE
+================================ */
+let audioContext, analyser, mic;
+let timer = 10;
+let interval = null;
+let holdSecond = Math.floor(Math.random() * 3) + 6; // 6–8
+let holdActive = false;
+let active = false;
+
+/* ===============================
+   ELEMENTS
+================================ */
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const timerEl = document.getElementById("timer");
+const instructionEl = document.getElementById("instruction");
+const resultEl = document.getElementById("result");
+const meterFill = document.getElementById("meter-fill");
+const nextBtn = document.getElementById("next-btn");
+
+/* ===============================
+   START GAME
+================================ */
+startBtn.onclick = async () => {
+  try {
+    audioContext = new AudioContext();
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mic = audioContext.createMediaStreamSource(stream);
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    mic.connect(analyser);
+
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+    active = true;
+    startTimer();
+    monitorSound();
+  } catch {
+    alert("Microphone access required to play.");
+  }
+};
+
+/* ===============================
+   TIMER
+================================ */
+function startTimer() {
+  interval = setInterval(() => {
+    timer--;
+    timerEl.textContent = `Time Left: ${timer}s`;
+
+    if (timer === holdSecond) {
+      holdActive = true;
+      instructionEl.textContent = "⚠️ HOLD STILL";
+      instructionEl.style.color = "#ff4444";
+    }
+
+    if (timer <= 0) {
+      clearInterval(interval);
+      finishGame();
+    }
+  }, 1000);
+}
+
+/* ===============================
+   SOUND MONITOR
+================================ */
+function monitorSound() {
+  const data = new Uint8Array(analyser.frequencyBinCount);
+
+  function check() {
+    if (!active) return;
+
+    analyser.getByteFrequencyData(data);
+    const volume = data.reduce((a, b) => a + b) / data.length;
+
+    // Meter
+    const percent = Math.min(volume / 80, 1);
+    meterFill.style.width = `${percent * 100}%`;
+
+    if (percent < 0.3) meterFill.style.background = "#00ff66";
+    else if (percent < 0.55) meterFill.style.background = "#ffaa00";
+    else meterFill.style.background = "#ff4444";
+
+    // FAIL CONDITIONS
+    if (volume > 70 || (holdActive && volume > 35)) {
+      fail("❌ Sound detected. Control was broken.");
+      return;
+    }
+
+    requestAnimationFrame(check);
+  }
+
+  check();
+}
+
+/* ===============================
+   FAIL
+================================ */
+function fail(msg) {
+  active = false;
+  clearInterval(interval);
+  resultEl.textContent = msg;
+  resultEl.style.color = "#ff4444";
+}
+
+/* ===============================
+   SUCCESS
+================================ */
+function finishGame() {
+  active = false;
+  resultEl.textContent = "✔ Silence maintained. Control achieved.";
+  resultEl.style.color = "#00ff66";
+  nextBtn.style.display = "inline-block";
+  fetch("/complete/diamonds/5", { method: "POST" });
+}
+</script>
+
+<style>
+.meter {
+  width: 240px;
+  height: 16px;
+  background: #222;
+  border-radius: 10px;
+  margin: 16px auto;
+  overflow: hidden;
+}
+
+#meter-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.1s;
+}
+
+.situation-text {
+  font-size: 16px;
+  margin: 10px 0;
+  color: #ffcccc;
+}
+
+.timer-text {
+  font-size: 22px;
+  color: #ffcccc;
+}
+</style>
+
+{% endblock %}

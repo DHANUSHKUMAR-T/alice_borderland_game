@@ -183,6 +183,18 @@ def diamonds_3():
     return render_template("games/diamonds_3.html",
                            title="Diamonds 3 – Pattern Break")
     
+@main.route("/game/diamonds/4")
+@login_required
+def diamonds_4():
+    return render_template("games/diamonds_4.html",
+                           title="Diamonds 4 – Risk vs Reward")
+
+@main.route("/game/diamonds/5")
+@login_required
+def diamonds_5():
+    return render_template("games/diamonds_5.html",
+                           title="Diamonds 5 – Silence Test")
+    
 
 
 
