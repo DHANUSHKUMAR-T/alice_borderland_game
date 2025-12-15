@@ -491,3 +491,58 @@ main.center-content {
     padding: 25px 150px;
     box-shadow: 0 0 30px rgba(0,0,0,0.6);
 }
+
+@media (max-width: 768px) {
+
+    .card-row {
+      display: flex;
+      overflow-x: auto;
+      gap: 12px;
+      padding: 10px;
+    }
+  
+    .card-row::-webkit-scrollbar {
+      display: none;
+    }
+  
+    .playing-card {
+      min-width: 120px;
+      flex-shrink: 0;
+    }
+  
+  }
+  
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    margin-top: 40px;
+    align-items: center;
+}
+
+/* BIG MAIN MENU BUTTONS */
+.button-group .btn {
+    display: flex;                 /* 🔑 key */
+    align-items: center;           /* vertical center */
+    justify-content: center;       /* horizontal center */
+
+    width: 100%;
+    max-width: 360px;
+    height: 64px;                  /* fixed height = stable centering */
+    
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+
+    border-radius: 40px;
+    padding: 0;                    /* remove padding issues */
+    text-align: center;
+}
+
+
+/* Hover / Tap feel */
+.button-group .btn:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 18px rgba(255, 0, 0, 0.6);
+}

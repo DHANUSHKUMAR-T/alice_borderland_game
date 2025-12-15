@@ -11,6 +11,9 @@
 .red-btn {
     background: #d10000;
     color: white;
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.7);
+
+    
 }
 .red-btn:hover {
     background: #ff1a1a;
@@ -25,6 +28,7 @@
     background: #111;
     color: #ff3434;
     border: 1px solid #ff3434;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
 .suit-container {
