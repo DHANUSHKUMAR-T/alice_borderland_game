@@ -195,6 +195,12 @@ def diamonds_5():
     return render_template("games/diamonds_5.html",
                            title="Diamonds 5 – Silence Test")
     
+@main.route("/game/clubs/A")
+@login_required
+def clubs_A():
+    return render_template("games/clubs_A.html",
+                           title="Clubs A – Reflex Gate")
+    
 
 
 

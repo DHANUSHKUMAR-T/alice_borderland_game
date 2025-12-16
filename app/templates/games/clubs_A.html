@@ -1,0 +1,263 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="game-container">
+  <div class="game-card-display">
+    <h2 class="menu-title">♣ Clubs A – Reflex Gate</h2>
+
+    <p class="game-text">
+      Timing decides everything.<br />
+      👉 Click "Tap" <b>only</b> when the gate opens.
+      <b>React in 950ms</b>
+    </p>
+
+    <div class="emotion-hint">
+      ⚡ Speed without control fails<br />
+      🧠 Precision > panic
+    </div>
+
+    <!-- START -->
+    <button id="start-btn" class="btn red-btn">Start Test</button>
+
+    <!-- GAME AREA -->
+    <div id="game-area" style="display: none">
+      <p id="timer" class="timer-text">Time Left: 5s</p>
+
+      <!-- GATE -->
+      <div id="gate" class="gate closed">🔴 GATE CLOSED</div>
+
+      <!-- ACTION -->
+<button id="tap-btn" class="btn tap-btn" disabled>TAP</button>
+
+<p id="result" class="result-text"></p>
+
+<button id="replay-btn" class="btn red-btn" style="display:none;">
+  🔁 Replay
+</button>
+
+
+      <!-- NAV -->
+      <div class="button-row">
+        <a
+          id="next-btn"
+          href="{{ url_for('main.suit_cards', suit='clubs') }}"
+          class="btn card-btn"
+          style="display: none"
+        >
+          Next Card →
+        </a>
+
+        <a
+          href="{{ url_for('main.suit_cards', suit='clubs') }}"
+          class="btn card-btn"
+        >
+          Back
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING CLUBS A CARD -->
+  <div class="floating-card">
+    <img
+      src="https://deckofcardsapi.com/static/img/AC.png"
+      class="card-image glow-float"
+      alt="Clubs A"
+    />
+  </div>
+</div>
+
+<script>
+    let timer = 5;
+    let interval = null;
+    let gateOpened = false;
+    let openTime = 0;
+    let active = false;
+    
+    const startBtn = document.getElementById("start-btn");
+    const gameArea = document.getElementById("game-area");
+    const timerEl = document.getElementById("timer");
+    const gateEl = document.getElementById("gate");
+    const tapBtn = document.getElementById("tap-btn");
+    const resultEl = document.getElementById("result");
+    const nextBtn = document.getElementById("next-btn");
+    const replayBtn = document.getElementById("replay-btn");
+    
+    startBtn.onclick = startGame;
+    replayBtn.onclick = startGame;
+    
+    function startGame() {
+      startBtn.style.display = "none";
+      replayBtn.style.display = "none";
+      nextBtn.style.display = "none";
+    
+      gameArea.style.display = "block";
+      resetGame();
+      startTimer();
+      randomGateOpen();
+    }
+    
+    function resetGame() {
+      clearInterval(interval);
+    
+      timer = 5;
+      active = true;
+      gateOpened = false;
+    
+      tapBtn.disabled = true;
+      gateEl.className = "gate closed";
+      gateEl.textContent = "🔴 GATE CLOSED";
+    
+      timerEl.textContent = `Time Left: ${timer}s`;
+      resultEl.textContent = "";
+    }
+    
+    function startTimer() {
+      interval = setInterval(() => {
+        if (!active) return;
+    
+        timer--;
+        if (timer <= 0) {
+          timer = 0;
+          timerEl.textContent = "Time Left: 0s";
+          fail("❌ Opportunity missed.");
+          return;
+        }
+    
+        timerEl.textContent = `Time Left: ${timer}s`;
+      }, 1000);
+    }
+    
+    function randomGateOpen() {
+      const delay = Math.random() * 2500 + 1000;
+    
+      setTimeout(() => {
+        if (!active) return;
+    
+        gateOpened = true;
+        openTime = performance.now();
+    
+        gateEl.className = "gate open";
+        gateEl.textContent = "🟢 GATE OPEN! TAP NOW";
+        tapBtn.disabled = false;
+      }, delay);
+    }
+    
+    tapBtn.onclick = () => {
+      if (!active) return;
+    
+      if (!gateOpened) {
+        fail("❌ Action without timing is failure.");
+        return;
+      }
+    
+      const reaction = performance.now() - openTime;
+    
+      if (reaction > 950) {
+        fail("❌ Too slow. Timing slipped.");
+        return;
+      }
+    
+      success(reaction);
+    };
+    
+    function fail(msg) {
+      active = false;
+      clearInterval(interval);
+    
+      tapBtn.disabled = true;
+      gateEl.className = "gate closed";
+      gateEl.textContent = "🔴 GATE CLOSED";
+    
+      resultEl.textContent = msg;
+      resultEl.style.color = "#ff4444";
+    
+      replayBtn.style.display = "inline-block";
+    }
+    
+    function success(rt) {
+      active = false;
+      clearInterval(interval);
+    
+      tapBtn.disabled = true;
+    
+      resultEl.textContent =
+        `✅ Reaction aligned with timing (${Math.round(rt)} ms).`;
+      resultEl.style.color = "#00ff66";
+    
+      nextBtn.style.display = "inline-block";
+      fetch("/complete/clubs/A", { method: "POST" });
+    }
+    </script>
+    
+
+<style>
+  .gate {
+    margin: 20px auto;
+    padding: 18px;
+    width: 260px;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    transition: 0.2s;
+  }
+
+  .gate.closed {
+    background: rgba(255, 0, 0, 0.15);
+    border: 2px solid #ff4444;
+    color: #ffcccc;
+  }
+
+  .gate.open {
+    background: rgba(0, 255, 100, 0.2);
+    border: 2px solid #00ff66;
+    color: #00ff66;
+    animation: pulse 0.5s infinite;
+  }
+    .tap-btn {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      font-size: 20px;
+      font-weight: bold;
+      margin: 16px auto;
+      display: block;
+    }
+    
+    #replay-btn {
+      display: none;
+    }
+    
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .timer-text {
+    font-size: 22px;
+    color: #ffcccc;
+  }
+
+  .result-text {
+    margin-top: 12px;
+    font-size: 16px;
+    min-height: 24px;
+  }
+
+  .button-row {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+  }
+</style>
+
+{% endblock %}
