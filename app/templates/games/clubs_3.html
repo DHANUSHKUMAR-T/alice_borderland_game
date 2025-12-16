@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+  <!-- FLOATING CARD -->
+  <div class="floating-card">
+    <img src="https://deckofcardsapi.com/static/img/3C.png"
+         class="card-image glow-float"
+         alt="Clubs 3">
+  </div>
+
+  <div class="game-card-display">
+
+    <h2 class="menu-title">♣ Clubs 3 – Split Attention</h2>
+
+    <p class="game-text">
+      Do two things at once.<br>
+      👉 Act only when required.
+    </p>
+
+    <div class="emotion-hint">
+        🧠 Attention under load<br>
+        ⚖️ Control > reflex
+      </div>
+      
+      <p class="rule-hint">
+        ⬆️ / ⬇️ → Tap the moment the arrow appears<br>
+        ⬅️ / ➡️ → Do nothing, even if you feel ready
+      </p>
+      
+
+    <!-- START -->
+    <button id="start-btn" class="btn red-btn">Start Test</button>
+
+    <!-- GAME AREA -->
+    <div id="game-area" style="display:none;">
+
+      <p id="timer" class="timer-text">Time Left: 8s</p>
+
+      <!-- TOP SIGNAL -->
+      <div id="signal" class="signal-box">—</div>
+
+      <!-- TAP ZONE -->
+      <button id="tap-zone" class="tap-zone">TAP ZONE</button>
+
+      <p id="result" class="result-text"></p>
+
+      <!-- NAV -->
+      <div class="button-row">
+        <a id="next-btn"
+           href="{{ url_for('main.suit_cards', suit='clubs') }}"
+           class="btn card-btn"
+           style="display:none;">
+          Next Card →
+        </a>
+
+        <a href="{{ url_for('main.suit_cards', suit='clubs') }}"
+           class="btn card-btn">
+          Back
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===============================
+   CONFIG
+================================ */
+const SIGNALS = ["⬆️", "⬇️", "⬅️", "➡️"];
+const TAP_REQUIRED = ["⬆️", "⬇️"];
+const TOTAL_SIGNALS = 8;
+const TIME_LIMIT = 8;
+
+/* ===============================
+   STATE
+================================ */
+let timer = TIME_LIMIT;
+let interval = null;
+let index = 0;
+let active = false;
+let currentSignal = null;
+let failed = false;
+
+/* ===============================
+   ELEMENTS
+================================ */
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const timerEl = document.getElementById("timer");
+const signalEl = document.getElementById("signal");
+const tapZone = document.getElementById("tap-zone");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+/* ===============================
+   START
+================================ */
+startBtn.onclick = () => {
+  startBtn.style.display = "none";
+  gameArea.style.display = "block";
+  startGame();
+};
+
+function startGame() {
+  timer = TIME_LIMIT;
+  index = 0;
+  active = true;
+  failed = false;
+  resultEl.textContent = "";
+  signalEl.textContent = "—";
+  startTimer();
+  nextSignal();
+}
+
+/* ===============================
+   TIMER
+================================ */
+function startTimer() {
+  interval = setInterval(() => {
+    timer--;
+    timerEl.textContent = `Time Left: ${timer}s`;
+
+    if (timer <= 0) {
+      clearInterval(interval);
+      finishGame();
+    }
+  }, 1000);
+}
+
+/* ===============================
+   SIGNAL FLOW
+================================ */
+function nextSignal() {
+  if (!active || index >= TOTAL_SIGNALS) return;
+
+  currentSignal =
+    SIGNALS[Math.floor(Math.random() * SIGNALS.length)];
+
+  signalEl.textContent = currentSignal;
+  index++;
+
+  setTimeout(() => {
+    if (!active) return;
+    nextSignal();
+  }, 1000);
+}
+
+/* ===============================
+   TAP LOGIC
+================================ */
+tapZone.onclick = () => {
+  if (!active) return;
+
+  if (!TAP_REQUIRED.includes(currentSignal)) {
+    fail("❌ Action without requirement.");
+  }
+};
+
+/* ===============================
+   AUTO CHECK (MISSED TAP)
+================================ */
+setInterval(() => {
+  if (!active) return;
+
+  if (TAP_REQUIRED.includes(currentSignal)) {
+    // If signal changed without tap → fail
+    // detected by checking shortly after signal appears
+    setTimeout(() => {
+      if (
+        active &&
+        TAP_REQUIRED.includes(currentSignal)
+      ) {
+        fail("❌ Required action was missed.");
+      }
+    }, 5000);
+  }
+}, 9000);
+
+/* ===============================
+   FAIL
+================================ */
+function fail(msg) {
+  if (failed) return;
+
+  failed = true;
+  active = false;
+  clearInterval(interval);
+
+  resultEl.textContent = msg;
+  resultEl.style.color = "#ff4444";
+}
+
+/* ===============================
+   SUCCESS
+================================ */
+function finishGame() {
+  if (failed) return;
+
+  active = false;
+  clearInterval(interval);
+
+  resultEl.textContent =
+    "✅ Attention stayed aligned under split load.";
+  resultEl.style.color = "#00ff66";
+
+  nextBtn.style.display = "inline-block";
+  fetch("/complete/clubs/3", { method: "POST" });
+}
+</script>
+
+<style>
+.signal-box {
+  font-size: 60px;
+  margin: 18px auto;
+  text-align: center;
+}
+
+.tap-zone {
+  width: 160px;
+  height: 160px;
+  margin: 14px auto;
+  display: block;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.timer-text {
+  font-size: 22px;
+  color: #ffcccc;
+}
+
+.result-text {
+  margin-top: 12px;
+  font-size: 16px;
+  min-height: 24px;
+}
+
+.button-row {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+}
+.rule-hint {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ffcccc;
+    opacity: 0.9;
+    text-align: center;
+  }
+  
+</style>
+
+{% endblock %}

@@ -205,7 +205,13 @@ def clubs_A():
 @login_required
 def clubs_2():
     return render_template("games/clubs_2.html",
-                           title="Clubs A – Reflex Gate")
+                           title="Clubs 2 – Threshold Check")
+    
+@main.route("/game/clubs/3")
+@login_required
+def clubs_3():
+    return render_template("games/clubs_3.html",
+                           title="Clubs 3 – Split Attention")
     
 
 
