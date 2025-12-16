@@ -16,17 +16,33 @@
       💎 Control > effort
     </div>
 
+    <!-- DEVICE NOTE -->
+    <div class="device-note">
+      ⚠️ <b>Best Experience:</b> This challenge works most accurately on
+      <b>mobile phones or tablets</b>.<br>
+      Laptop microphones often auto-reduce sensitivity.
+    </div>
+
     <button id="start-btn" class="btn red-btn">Allow Microphone</button>
 
     <div id="game-area" style="display:none;">
-      <p id="timer" class="timer-text">Time Left: 10s</p>
+      <p id="timer" class="timer-text">Time Left: 15s</p>
 
       <p id="instruction" class="situation-text">
         🔇 Stay silent. Control your space.
       </p>
 
+      <p class="rule-text">
+        ⚠️ If sound reaches <b>10%</b>, control breaks.
+      </p>
+
       <!-- SOUND METER -->
       <div class="meter">
+        <div class="meter-mark left">0%</div>
+        <div class="meter-mark mid">10%</div>
+        <div class="meter-mark right">100%</div>
+
+        <div class="fail-line"></div>
         <div id="meter-fill"></div>
       </div>
 
@@ -57,61 +73,48 @@
 
 <script>
 /* ===============================
-   STATE
+   AUDIO STATE
 ================================ */
 let audioContext, analyser, mic;
-let timer = 10;
+let timer = 15;
 let interval = null;
-let holdSecond = Math.floor(Math.random() * 3) + 6; // 6–8
-let holdActive = false;
 let active = false;
 
-/* ===============================
-   ELEMENTS
-================================ */
+/* ELEMENTS */
 const startBtn = document.getElementById("start-btn");
 const gameArea = document.getElementById("game-area");
 const timerEl = document.getElementById("timer");
-const instructionEl = document.getElementById("instruction");
 const resultEl = document.getElementById("result");
 const meterFill = document.getElementById("meter-fill");
 const nextBtn = document.getElementById("next-btn");
 
-/* ===============================
-   START GAME
-================================ */
+/* START GAME */
 startBtn.onclick = async () => {
   try {
-    audioContext = new AudioContext();
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
     mic = audioContext.createMediaStreamSource(stream);
     analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256;
+    analyser.fftSize = 1024;
     mic.connect(analyser);
 
     startBtn.style.display = "none";
     gameArea.style.display = "block";
     active = true;
+
     startTimer();
     monitorSound();
   } catch {
-    alert("Microphone access required to play.");
+    alert("Microphone permission required.");
   }
 };
 
-/* ===============================
-   TIMER
-================================ */
+/* TIMER */
 function startTimer() {
   interval = setInterval(() => {
     timer--;
     timerEl.textContent = `Time Left: ${timer}s`;
-
-    if (timer === holdSecond) {
-      holdActive = true;
-      instructionEl.textContent = "⚠️ HOLD STILL";
-      instructionEl.style.color = "#ff4444";
-    }
 
     if (timer <= 0) {
       clearInterval(interval);
@@ -120,41 +123,46 @@ function startTimer() {
   }, 1000);
 }
 
-/* ===============================
-   SOUND MONITOR
-================================ */
+/* SOUND MONITOR (0–100%) */
 function monitorSound() {
-  const data = new Uint8Array(analyser.frequencyBinCount);
+  const data = new Uint8Array(analyser.fftSize);
 
-  function check() {
+  function loop() {
     if (!active) return;
 
-    analyser.getByteFrequencyData(data);
-    const volume = data.reduce((a, b) => a + b) / data.length;
+    analyser.getByteTimeDomainData(data);
 
-    // Meter
-    const percent = Math.min(volume / 80, 1);
-    meterFill.style.width = `${percent * 100}%`;
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) {
+      const v = (data[i] - 128) / 128;
+      sum += v * v;
+    }
 
-    if (percent < 0.3) meterFill.style.background = "#00ff66";
-    else if (percent < 0.55) meterFill.style.background = "#ffaa00";
-    else meterFill.style.background = "#ff4444";
+    const rms = Math.sqrt(sum / data.length);
 
-    // FAIL CONDITIONS
-    if (volume > 70 || (holdActive && volume > 35)) {
-      fail("❌ Sound detected. Control was broken.");
+    /* Gentle scaling for 10% threshold */
+    const percent = Math.min(Math.round(rms * 110), 100);
+
+    meterFill.style.width = percent + "%";
+
+    if (percent < 10) {
+      meterFill.style.background = "#00ff66";
+    } else {
+      meterFill.style.background = "#ff4444";
+    }
+
+    if (percent >= 10) {
+      fail("❌ Sound exceeded control limit.");
       return;
     }
 
-    requestAnimationFrame(check);
+    requestAnimationFrame(loop);
   }
 
-  check();
+  loop();
 }
 
-/* ===============================
-   FAIL
-================================ */
+/* FAIL */
 function fail(msg) {
   active = false;
   clearInterval(interval);
@@ -162,9 +170,7 @@ function fail(msg) {
   resultEl.style.color = "#ff4444";
 }
 
-/* ===============================
-   SUCCESS
-================================ */
+/* SUCCESS */
 function finishGame() {
   active = false;
   resultEl.textContent = "✔ Silence maintained. Control achieved.";
@@ -175,26 +181,56 @@ function finishGame() {
 </script>
 
 <style>
+.device-note {
+  background: rgba(255, 0, 0, 0.08);
+  border: 1px solid #ff4444;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  color: #ffcccc;
+}
+
+.rule-text {
+  font-size: 14px;
+  color: #ffcccc;
+}
+
 .meter {
-  width: 240px;
+  position: relative;
+  width: 260px;
   height: 16px;
   background: #222;
   border-radius: 10px;
-  margin: 16px auto;
-  overflow: hidden;
+  margin: 20px auto;
 }
 
 #meter-fill {
   height: 100%;
   width: 0%;
-  transition: width 0.1s;
+  border-radius: 10px;
+  transition: width 0.08s linear;
 }
 
-.situation-text {
-  font-size: 16px;
-  margin: 10px 0;
-  color: #ffcccc;
+.fail-line {
+  position: absolute;
+  left: 10%;
+  top: 0;
+  height: 100%;
+  width: 2px;
+  background: #ff4444;
 }
+
+.meter-mark {
+  position: absolute;
+  top: 20px;
+  font-size: 11px;
+  color: #ccc;
+}
+
+.meter-mark.left { left: 0; }
+.meter-mark.mid { left: 10%; transform: translateX(-50%); color: #ff4444; }
+.meter-mark.right { right: 0; }
 
 .timer-text {
   font-size: 22px;
