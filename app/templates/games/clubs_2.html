@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+  <!-- FLOATING CARD -->
+  <div class="floating-card">
+    <img src="https://deckofcardsapi.com/static/img/2C.png"
+         class="card-image glow-float"
+         alt="Clubs 2">
+  </div>
+
+  <div class="game-card-display">
+
+    <h2 class="menu-title">♣ Clubs 2 – Threshold Check</h2>
+
+    <p class="game-text">
+      Clubs do not test speed.<br>
+      They verify <b>control</b>.
+    </p>
+
+    <div class="emotion-hint">
+      🧠 Past performance decides the present<br>
+      ⚖️ Discipline &gt; reaction
+    </div>
+
+    <!-- RESULT -->
+    <div id="status-box" class="status-box"></div>
+
+    <!-- NAV -->
+    <div class="button-row">
+      <a id="retry-btn"
+         href="{{ url_for('main.suit_cards', suit='spades') }}"
+         class="btn red-btn"
+         style="display:none;">
+        Retry Spades 2
+      </a>
+
+      <a id="next-btn"
+         href="{{ url_for('main.suit_cards', suit='clubs') }}"
+         class="btn card-btn"
+         style="display:none;">
+        Next Card →
+      </a>
+
+      <a href="{{ url_for('main.suit_cards', suit='clubs') }}"
+         class="btn card-btn">
+        Back
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ===============================
+   DEVICE DETECTION
+================================ */
+const isTouch =
+  'ontouchstart' in window ||
+  navigator.maxTouchPoints > 0;
+
+/* ===============================
+   THRESHOLDS (DESIGN DECISION)
+================================ */
+const LIMIT = isTouch ? 900 : 600;
+
+/* ===============================
+   LOAD SPADES 2 DATA
+================================ */
+const avgRaw = localStorage.getItem("spades2_avg");
+const avg = avgRaw ? Number(avgRaw) : null;
+
+const statusBox = document.getElementById("status-box");
+const retryBtn = document.getElementById("retry-btn");
+const nextBtn = document.getElementById("next-btn");
+
+/* ===============================
+   DECISION LOGIC
+================================ */
+if (!avg || isNaN(avg)) {
+
+  // ❌ No data
+  statusBox.innerHTML = `
+    ❌ No reaction data found.<br><br>
+    You must complete <b>Spades 2</b> first.
+  `;
+  statusBox.className = "status-box fail";
+  retryBtn.style.display = "inline-block";
+
+} else if (avg <= LIMIT) {
+
+  // ✅ PASS
+  statusBox.innerHTML = `
+    ✅ Threshold met.<br><br>
+    Your average reaction:<br>
+    <b>${Math.round(avg)} ms</b><br><br>
+    Allowed limit:<br>
+    <b>${LIMIT} ms</b><br><br>
+    Control confirmed.
+  `;
+  statusBox.className = "status-box success";
+
+  nextBtn.style.display = "inline-block";
+  fetch("/complete/clubs/2", { method: "POST" });
+
+} else {
+
+  // ❌ FAIL
+  statusBox.innerHTML = `
+    ❌ Threshold not met.<br><br>
+    Your average reaction:<br>
+    <b>${Math.round(avg)} ms</b><br><br>
+    Required limit:<br>
+    <b>${LIMIT} ms</b><br><br>
+    Improve control in <b>Spades 2</b>.
+  `;
+  statusBox.className = "status-box fail";
+  retryBtn.style.display = "inline-block";
+}
+</script>
+
+<style>
+.status-box {
+  margin: 20px auto;
+  padding: 18px;
+  max-width: 360px;
+  border-radius: 14px;
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.status-box.success {
+  background: rgba(0, 255, 100, 0.12);
+  border: 2px solid #00ff66;
+  color: #ccffe6;
+}
+
+.status-box.fail {
+  background: rgba(255, 0, 0, 0.12);
+  border: 2px solid #ff4444;
+  color: #ffd6d6;
+}
+
+.button-row {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+</style>
+
+{% endblock %}

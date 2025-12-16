@@ -201,6 +201,12 @@ def clubs_A():
     return render_template("games/clubs_A.html",
                            title="Clubs A – Reflex Gate")
     
+@main.route("/game/clubs/2")
+@login_required
+def clubs_2():
+    return render_template("games/clubs_2.html",
+                           title="Clubs A – Reflex Gate")
+    
 
 
 

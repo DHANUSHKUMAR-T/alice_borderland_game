@@ -54,7 +54,7 @@ const isTouch =
   navigator.maxTouchPoints > 0;
 
 /* ===============================
-   FAIR THRESHOLD (USED ONLY HERE)
+   THRESHOLD (FAIR PLAY)
 ================================ */
 const REACTION_LIMIT = isTouch ? 950 : 800;
 document.getElementById("limit-text").textContent =
@@ -78,6 +78,7 @@ let startTime = 0;
 let currentRound = 1;
 let totalTime = 0;
 let correctBox = null;
+let failOffset = 0;
 
 /* ===============================
    RESET
@@ -127,15 +128,8 @@ function handleClick(side) {
     totalTime += reactionTime;
 
     if (currentRound === 3) {
-      const avg = Math.round(totalTime / 3);
-
-      /* ✅ STORE RESULT FOR CLUBS 2 */
-      localStorage.setItem("spades2_avg", avg);
-      localStorage.setItem("spades2_device", isTouch ? "touch" : "non-touch");
-
       resultText.textContent =
-        `🎉 Completed! Avg reaction ≈ ${avg} ms`;
-
+        `🎉 Completed! Avg ≈ ${Math.round(totalTime)} ms`;
       nextCardBtn.style.display = "inline-block";
       fetch("/complete/spades/2", { method: "POST" });
     } else {
@@ -143,10 +137,10 @@ function handleClick(side) {
       roundStatus.textContent = `Round: ${currentRound} / 3`;
       startBtn.style.display = "block";
     }
-
   } else {
     resultText.textContent = "❌ Timing slipped. Try again.";
     resultText.style.color = "#ff4444";
+
     startBtn.style.display = "block";
   }
 }
@@ -192,6 +186,7 @@ boxRight.onclick = () => handleClick("right");
 .start-center {
   display: block;
   margin: 20px auto;
+  transition: transform 0.3s ease;
 }
 
 .danger {
