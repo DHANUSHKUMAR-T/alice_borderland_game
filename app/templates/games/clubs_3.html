@@ -12,42 +12,49 @@
 
   <div class="game-card-display">
 
-    <h2 class="menu-title">♣ Clubs 3 – Split Attention</h2>
+    <h2 class="menu-title">♣ Clubs 3 – Red Light</h2>
 
     <p class="game-text">
-      Do two things at once.<br>
-      👉 Act only when required.
+      Control decides survival.<br>
+      👉 Act only when allowed.
     </p>
 
-    <div class="emotion-hint">
-        🧠 Attention under load<br>
-        ⚖️ Control > reflex
-      </div>
-      
-      <p class="rule-hint">
-        ⬆️ / ⬇️ → Tap the moment the arrow appears<br>
-        ⬅️ / ➡️ → Do nothing, even if you feel ready
-      </p>
-      
+    <div class="rule-text">
+      🟢 GREEN → TAP<br>
+      🔴 RED → DO NOTHING
+    </div>
+
+
 
     <!-- START -->
     <button id="start-btn" class="btn red-btn">Start Test</button>
 
-    <!-- GAME AREA -->
+    <!-- GAME -->
     <div id="game-area" style="display:none;">
 
-      <p id="timer" class="timer-text">Time Left: 8s</p>
+      <p id="round-text" class="round-text">Round 1 / 3</p>
+      <p id="timer" class="timer-text">Time Left: 7s</p>
 
-      <!-- TOP SIGNAL -->
-      <div id="signal" class="signal-box">—</div>
+      <!-- LIGHT -->
+      <div id="light" class="light red">
+        🔴 RED LIGHT
+      </div>
 
-      <!-- TAP ZONE -->
-      <button id="tap-zone" class="tap-zone">TAP ZONE</button>
+      <!-- TAP -->
+      <button id="tap-btn" class="tap-btn" disabled>
+        TAP
+      </button>
 
       <p id="result" class="result-text"></p>
 
       <!-- NAV -->
       <div class="button-row">
+        <button id="replay-btn"
+                class="btn red-btn"
+                style="display:none;">
+          Replay
+        </button>
+
         <a id="next-btn"
            href="{{ url_for('main.suit_cards', suit='clubs') }}"
            class="btn card-btn"
@@ -66,169 +73,243 @@
 </div>
 
 <script>
-/* ===============================
-   CONFIG
-================================ */
-const SIGNALS = ["⬆️", "⬇️", "⬅️", "➡️"];
-const TAP_REQUIRED = ["⬆️", "⬇️"];
-const TOTAL_SIGNALS = 8;
-const TIME_LIMIT = 8;
-
-/* ===============================
-   STATE
-================================ */
-let timer = TIME_LIMIT;
-let interval = null;
-let index = 0;
-let active = false;
-let currentSignal = null;
-let failed = false;
-
-/* ===============================
-   ELEMENTS
-================================ */
-const startBtn = document.getElementById("start-btn");
-const gameArea = document.getElementById("game-area");
-const timerEl = document.getElementById("timer");
-const signalEl = document.getElementById("signal");
-const tapZone = document.getElementById("tap-zone");
-const resultEl = document.getElementById("result");
-const nextBtn = document.getElementById("next-btn");
-
-/* ===============================
-   START
-================================ */
-startBtn.onclick = () => {
-  startBtn.style.display = "none";
-  gameArea.style.display = "block";
-  startGame();
-};
-
-function startGame() {
-  timer = TIME_LIMIT;
-  index = 0;
-  active = true;
-  failed = false;
-  resultEl.textContent = "";
-  signalEl.textContent = "—";
-  startTimer();
-  nextSignal();
-}
-
-/* ===============================
-   TIMER
-================================ */
-function startTimer() {
-  interval = setInterval(() => {
-    timer--;
+  /* ===============================
+     CONSTANTS
+  ================================ */
+  const TOTAL_ROUNDS = 3;
+  
+  /* ===============================
+     STATE
+  ================================ */
+  let timer = 7;
+  let interval = null;
+  let active = false;
+  let lightState = "red";
+  let greenAppeared = false;
+  let round = 1;
+  
+  /* ===============================
+     ELEMENTS
+  ================================ */
+  const startBtn = document.getElementById("start-btn");
+  const gameArea = document.getElementById("game-area");
+  const timerEl = document.getElementById("timer");
+  const roundEl = document.getElementById("round-text");
+  const lightEl = document.getElementById("light");
+  const tapBtn = document.getElementById("tap-btn");
+  const resultEl = document.getElementById("result");
+  const replayBtn = document.getElementById("replay-btn");
+  const nextBtn = document.getElementById("next-btn");
+  
+  /* ===============================
+     START
+  ================================ */
+  startBtn.addEventListener("pointerdown", startGame);
+  replayBtn.addEventListener("pointerdown", startGame);
+  
+  function startGame() {
+    clearInterval(interval);
+  
+    startBtn.style.display = "none";
+    replayBtn.style.display = "none";
+    nextBtn.style.display = "none";
+  
+    gameArea.style.display = "block";
+  
+    round = 1;
+    startRound();
+  }
+  
+  /* ===============================
+     START ROUND
+  ================================ */
+  function startRound() {
+    clearInterval(interval);
+  
+    timer = 7;
+    active = true;
+    greenAppeared = false;
+    lightState = "red";
+  
+    roundEl.textContent = `Round ${round} / ${TOTAL_ROUNDS}`;
     timerEl.textContent = `Time Left: ${timer}s`;
-
-    if (timer <= 0) {
-      clearInterval(interval);
-      finishGame();
-    }
-  }, 1000);
-}
-
-/* ===============================
-   SIGNAL FLOW
-================================ */
-function nextSignal() {
-  if (!active || index >= TOTAL_SIGNALS) return;
-
-  currentSignal =
-    SIGNALS[Math.floor(Math.random() * SIGNALS.length)];
-
-  signalEl.textContent = currentSignal;
-  index++;
-
-  setTimeout(() => {
-    if (!active) return;
-    nextSignal();
-  }, 1000);
-}
-
-/* ===============================
-   TAP LOGIC
-================================ */
-tapZone.onclick = () => {
-  if (!active) return;
-
-  if (!TAP_REQUIRED.includes(currentSignal)) {
-    fail("❌ Action without requirement.");
+  
+    tapBtn.disabled = false;
+    resultEl.textContent = "";
+  
+    updateLight();
+    startTimer();
+    randomLightChange();
   }
-};
-
-/* ===============================
-   AUTO CHECK (MISSED TAP)
-================================ */
-setInterval(() => {
-  if (!active) return;
-
-  if (TAP_REQUIRED.includes(currentSignal)) {
-    // If signal changed without tap → fail
-    // detected by checking shortly after signal appears
-    setTimeout(() => {
-      if (
-        active &&
-        TAP_REQUIRED.includes(currentSignal)
-      ) {
-        fail("❌ Required action was missed.");
+  
+  /* ===============================
+     TIMER
+  ================================ */
+  function startTimer() {
+    interval = setInterval(() => {
+      if (!active) return;
+  
+      timer--;
+      timerEl.textContent = `Time Left: ${timer}s`;
+  
+      if (timer <= 0) {
+        clearInterval(interval);
+  
+        if (!greenAppeared) {
+          fail("❌ Required action was missed.");
+        } else {
+          completeRound();
+        }
       }
-    }, 5000);
+    }, 1000);
   }
-}, 9000);
-
-/* ===============================
-   FAIL
-================================ */
-function fail(msg) {
-  if (failed) return;
-
-  failed = true;
-  active = false;
-  clearInterval(interval);
-
-  resultEl.textContent = msg;
-  resultEl.style.color = "#ff4444";
-}
-
-/* ===============================
-   SUCCESS
-================================ */
-function finishGame() {
-  if (failed) return;
-
-  active = false;
-  clearInterval(interval);
-
-  resultEl.textContent =
-    "✅ Attention stayed aligned under split load.";
-  resultEl.style.color = "#00ff66";
-
-  nextBtn.style.display = "inline-block";
-  fetch("/complete/clubs/3", { method: "POST" });
-}
-</script>
+  
+  /* ===============================
+     LIGHT LOGIC
+  ================================ */
+  function randomLightChange() {
+    const delay = Math.random() * 1800 + 1200; // slightly faster for mobile
+  
+    setTimeout(() => {
+      if (!active) return;
+  
+      lightState = "green";
+      greenAppeared = true;
+      updateLight();
+  
+      setTimeout(() => {
+        if (!active) return;
+        lightState = "red";
+        updateLight();
+      }, 700); // green window
+    }, delay);
+  }
+  
+  function updateLight() {
+    if (lightState === "green") {
+      lightEl.className = "light green";
+      lightEl.textContent = "🟢 GREEN LIGHT";
+    } else {
+      lightEl.className = "light red";
+      lightEl.textContent = "🔴 RED LIGHT";
+    }
+  }
+  
+  /* ===============================
+     TAP (TOUCH-FIRST)
+  ================================ */
+  tapBtn.addEventListener("pointerdown", () => {
+    if (!active) return;
+  
+    // instant visual feedback
+    tapBtn.style.transform = "scale(0.95)";
+    setTimeout(() => (tapBtn.style.transform = "scale(1)"), 80);
+  
+    if (lightState === "red") {
+      fail("❌ Action without permission.");
+      return;
+    }
+  
+    completeRound();
+  });
+  
+  /* ===============================
+     ROUND COMPLETE
+  ================================ */
+  function completeRound() {
+    active = false;
+    clearInterval(interval);
+  
+    tapBtn.disabled = true;
+  
+    if (round < TOTAL_ROUNDS) {
+      resultEl.textContent = "✅ Controlled. Next round.";
+      resultEl.style.color = "#00ff66";
+  
+      setTimeout(() => {
+        round++;
+        startRound();
+      }, 1000);
+    } else {
+      success();
+    }
+  }
+  
+  /* ===============================
+     FAIL
+  ================================ */
+  function fail(msg) {
+    active = false;
+    clearInterval(interval);
+  
+    tapBtn.disabled = true;
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff4444";
+  
+    replayBtn.style.display = "inline-block";
+  }
+  
+  /* ===============================
+     SUCCESS
+  ================================ */
+  function success() {
+    resultEl.textContent =
+      "🏆 Discipline proven. Control maintained.";
+    resultEl.style.color = "#00ff66";
+  
+    nextBtn.style.display = "inline-block";
+    fetch("/complete/clubs/3", { method: "POST" });
+  }
+  </script>
+  
 
 <style>
-.signal-box {
-  font-size: 60px;
+.rule-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #ffcccc;
+}
+
+.tap-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+
+.light {
   margin: 18px auto;
+  padding: 18px;
+  width: 260px;
+  border-radius: 14px;
+  font-size: 20px;
+  font-weight: bold;
   text-align: center;
 }
 
-.tap-zone {
-  width: 160px;
-  height: 160px;
-  margin: 14px auto;
-  display: block;
+.light.red {
+  background: rgba(255,0,0,0.15);
+  border: 2px solid #ff4444;
+  color: #ffcccc;
+}
+
+.light.green {
+  background: rgba(0,255,100,0.2);
+  border: 2px solid #00ff66;
+  color: #00ff66;
+}
+
+.tap-btn {
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   font-size: 20px;
   font-weight: bold;
+  display: block;
+  margin: 18px auto;
 }
 
-.timer-text {
+.timer-text, .round-text {
   font-size: 22px;
   color: #ffcccc;
 }
@@ -240,19 +321,11 @@ function finishGame() {
 }
 
 .button-row {
-  margin-top: 30px;
+  margin-top: 26px;
   display: flex;
   justify-content: center;
-  gap: 25px;
+  gap: 20px;
 }
-.rule-hint {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #ffcccc;
-    opacity: 0.9;
-    text-align: center;
-  }
-  
 </style>
 
 {% endblock %}
