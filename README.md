@@ -264,15 +264,6 @@ Progress tracking
 Visual polish
 Zero broken routes
 Production-ready release
-👨‍💻 Developer
-
-DhanushKumar T
-
-B.Tech Artificial Intelligence & Data Science
-
-Velammal Institute of Technology
-
-Chennai, Tamil Nadu, India
 
 🎴 Welcome to the Borderland
 
