@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂧 Spades 7 – Weight Shift</h2>
+
+        <p class="game-text">
+            Distribute weight correctly to balance the floor.<br>
+            Match the required total weight.
+        </p>
+        <p class="game-text"><strong>Rules</strong></p>
+
+<ul class="game-text" style="text-align:left; display:inline-block;">
+    <li>You have <strong>3 weight blocks</strong> (10kg each).</li>
+    <li>Each tile multiplies the block’s weight.</li>
+    <li>Place blocks on tiles to match the <strong>Required Weight</strong> exactly.</li>
+    <li>Press <strong>Balance</strong> to check.</li>
+    <li>If total ≠ required weight → floor drops.</li>
+    <li>Clear all rows to survive.</li>
+</ul>
+
+        <button id="start-btn" class="btn red-btn">Start Game</button>
+
+        <div id="game-area" style="display:none;">
+            <p id="level-info"></p>
+            <p id="required-weight"></p>
+
+            <div class="tiles">
+                <button class="tile-btn" data-mult="1">Tile A → x1</button>
+                <button class="tile-btn" data-mult="2">Tile B → x2</button>
+                <button class="tile-btn" data-mult="1.5">Tile C → x1.5</button>
+                <button class="tile-btn" data-mult="0.5">Tile D → x0.5</button>
+            </div>
+
+            <p id="blocks-left"></p>
+
+            <button id="balance-btn" class="btn red-btn">Balance</button>
+
+            <p id="result"></p>
+
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='spades') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='spades') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.onload = function() {
+
+    const startBtn = document.getElementById("start-btn");
+    const gameArea = document.getElementById("game-area");
+    const requiredWeightEl = document.getElementById("required-weight");
+    const blocksLeftEl = document.getElementById("blocks-left");
+    const resultEl = document.getElementById("result");
+    const balanceBtn = document.getElementById("balance-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const levelInfo = document.getElementById("level-info");
+
+    const tiles = document.querySelectorAll(".tile-btn");
+
+    let level = 1;
+    let maxLevel = 3;
+    let blocks = 3;
+    let requiredWeight;
+    let selectedTotal;
+
+    startBtn.onclick = function() {
+        startBtn.style.display = "none";
+        gameArea.style.display = "block";
+        startLevel();
+    };
+
+    function startLevel() {
+        blocks = 3;
+        selectedTotal = 0;
+        requiredWeight = 20 + (level * 10);
+
+        levelInfo.textContent = "Row " + level + " of 3";
+        requiredWeightEl.textContent = "Required Weight: " + requiredWeight + "kg";
+        blocksLeftEl.textContent = "Blocks Left: " + blocks;
+        resultEl.textContent = "";
+        nextBtn.style.display = "none";
+
+        tiles.forEach(tile => tile.disabled = false);
+    }
+
+    tiles.forEach(tile => {
+        tile.onclick = function() {
+            if (blocks <= 0) return;
+
+            let mult = parseFloat(tile.dataset.mult);
+            selectedTotal += 10 * mult;
+            blocks--;
+
+            blocksLeftEl.textContent = "Blocks Left: " + blocks;
+        };
+    });
+
+    balanceBtn.onclick = function() {
+        if (selectedTotal === requiredWeight) {
+            level++;
+
+            if (level > maxLevel) {
+                resultEl.textContent = "🎉 Perfect Balance! You Survived!";
+                resultEl.style.color = "#00ff66";
+                nextBtn.style.display = "inline-block";
+
+                fetch("/complete/spades/7", { method: "POST" });
+            } else {
+                resultEl.textContent = "✔ Balanced! Next Row...";
+                resultEl.style.color = "#00ff66";
+                setTimeout(startLevel, 1500);
+            }
+        } else {
+            resultEl.textContent = "💀 Imbalance! Floor Dropped!";
+            resultEl.style.color = "#ff3333";
+            setTimeout(startLevel, 2000);
+        }
+    };
+
+};
+</script>
+
+<style>
+.tiles {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.tile-btn {
+    padding: 15px;
+    background: #111;
+    border: 2px solid red;
+    color: white;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.tile-btn:hover {
+    transform: scale(1.05);
+}
+</style>
+
+{% endblock %}

@@ -36,6 +36,9 @@ class GameProgress(db.Model):
     spades_8 = db.Column(db.Boolean, default=False)
     spades_9 = db.Column(db.Boolean, default=False)
     spades_10 = db.Column(db.Boolean, default=False)
+    spades_J = db.Column(db.Boolean, default=False)
+    spades_Q = db.Column(db.Boolean, default=False)
+    spades_K = db.Column(db.Boolean, default=False)
 
     # Hearts
     hearts_A = db.Column(db.Boolean, default=False)
@@ -48,6 +51,9 @@ class GameProgress(db.Model):
     hearts_8 = db.Column(db.Boolean, default=False)
     hearts_9 = db.Column(db.Boolean, default=False)
     hearts_10 = db.Column(db.Boolean, default=False)
+    hearts_J = db.Column(db.Boolean, default=False)
+    hearts_Q = db.Column(db.Boolean, default=False)
+    hearts_K = db.Column(db.Boolean, default=False)
 
     # Diamonds
     diamonds_A = db.Column(db.Boolean, default=False)
@@ -60,6 +66,9 @@ class GameProgress(db.Model):
     diamonds_8 = db.Column(db.Boolean, default=False)
     diamonds_9 = db.Column(db.Boolean, default=False)
     diamonds_10 = db.Column(db.Boolean, default=False)
+    diamonds_J = db.Column(db.Boolean, default=False)
+    diamonds_Q = db.Column(db.Boolean, default=False)
+    diamonds_K = db.Column(db.Boolean, default=False)
 
     # Clubs
     clubs_A = db.Column(db.Boolean, default=False)
@@ -72,3 +81,12 @@ class GameProgress(db.Model):
     clubs_8 = db.Column(db.Boolean, default=False)
     clubs_9 = db.Column(db.Boolean, default=False)
     clubs_10 = db.Column(db.Boolean, default=False)
+    clubs_J = db.Column(db.Boolean, default=False)
+    clubs_Q = db.Column(db.Boolean, default=False)
+    clubs_K = db.Column(db.Boolean, default=False)
+
+    # Story and Choices tracking
+    story_choices = db.Column(db.String(255), default="")
+    total_retries = db.Column(db.Integer, default=0)
+    current_chapter = db.Column(db.Integer, default=1)
+

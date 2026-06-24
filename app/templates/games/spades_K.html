@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♠ Spades King – Boss Duel</h2>
+
+        <p class="game-text">
+            <b>Final Clash:</b> The King of Spades (red sphere) launches energy slashes at you. Press <b>SPACEBAR</b> to activate your deflection field (cyan ring) when the slash overlaps your shield zone (white dashed circle).
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Your Health: <span id="player-hp" style="color: #00ffff; font-weight: bold;">███</span></div>
+                <div>King's Health: <span id="boss-hp" style="color: #ff3333; font-weight: bold;">███</span></div>
+            </div>
+
+            <canvas id="fight-canvas" width="450" height="200"></canvas>
+
+            <p id="feedback" class="feedback-text">Prepare to parry!</p>
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn">Draw Weapon</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='spades') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='spades') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/KS.png"
+             class="card-image glow-float"
+             alt="Spades King">
+    </div>
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const canvas = document.getElementById("fight-canvas");
+const ctx = canvas.getContext("2d");
+const playerHpEl = document.getElementById("player-hp");
+const bossHpEl = document.getElementById("boss-hp");
+const feedbackEl = document.getElementById("feedback");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+let player = { x: 60, y: 100, radius: 15, shieldActive: false, shieldDuration: 0 };
+let boss = { x: 390, y: 100, radius: 25 };
+let playerHP = 3;
+let bossHP = 3;
+let slashes = [];
+let gameActive = false;
+let loopId = null;
+let attackTimeout = null;
+
+window.addEventListener("keydown", e => {
+    if (e.key === " " && gameActive) {
+        e.preventDefault();
+        activateShield();
+    }
+});
+
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    initGame();
+};
+
+function activateShield() {
+    if (player.shieldActive) return;
+    player.shieldActive = true;
+    player.shieldDuration = 10; // active for 10 frames (~160ms)
+    feedbackEl.textContent = "Deflect Active!";
+    feedbackEl.style.color = "#00ffff";
+}
+
+function initGame() {
+    playerHP = 3;
+    bossHP = 3;
+    slashes = [];
+    gameActive = true;
+    resultEl.textContent = "";
+    feedbackEl.textContent = "Stand ready! Space to parry.";
+    feedbackEl.style.color = "white";
+    nextBtn.style.display = "none";
+    updateHPBars();
+
+    scheduleBossAttack();
+
+    if (loopId) cancelAnimationFrame(loopId);
+    gameLoop();
+}
+
+function updateHPBars() {
+    playerHpEl.textContent = "█".repeat(playerHP) + "░".repeat(3 - playerHP);
+    bossHpEl.textContent = "█".repeat(bossHP) + "░".repeat(3 - bossHP);
+}
+
+function scheduleBossAttack() {
+    if (!gameActive) return;
+    let delay = 1800 + Math.random() * 1200;
+    attackTimeout = setTimeout(() => {
+        if (!gameActive) return;
+        launchAttack();
+        scheduleBossAttack();
+    }, delay);
+}
+
+function launchAttack() {
+    let speed = 4 + Math.random() * 2;
+    slashes.push({
+        x: boss.x - 30,
+        y: boss.y,
+        radius: 8,
+        speed: speed,
+        deflected: false
+    });
+    feedbackEl.textContent = "INCOMING SLASH!";
+    feedbackEl.style.color = "#ff3333";
+}
+
+function update() {
+    // Update shield duration
+    if (player.shieldActive) {
+        player.shieldDuration--;
+        if (player.shieldDuration <= 0) {
+            player.shieldActive = false;
+        }
+    }
+
+    // Move slashes
+    slashes.forEach((slash, index) => {
+        if (slash.deflected) {
+            slash.x += slash.speed * 1.5;
+            // Hit boss check
+            let dx = slash.x - boss.x;
+            let dy = slash.y - boss.y;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < boss.radius + slash.radius) {
+                bossHP--;
+                updateHPBars();
+                feedbackEl.textContent = "🎯 REVERBERATION HIT! King takes damage.";
+                feedbackEl.style.color = "#00ff66";
+                slashes.splice(index, 1);
+                if (bossHP <= 0) {
+                    winGame();
+                }
+            }
+        } else {
+            slash.x -= slash.speed;
+
+            // Parry timing zone check
+            let shieldZoneRadius = 40;
+            let dx = slash.x - player.x;
+            let dy = slash.y - player.y;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+
+            // Parry execution
+            if (dist < shieldZoneRadius && dist > player.radius) {
+                if (player.shieldActive) {
+                    slash.deflected = true;
+                    slash.speed = -slash.speed;
+                    feedbackEl.textContent = "⚔️ PERFECT DEFLECT!";
+                    feedbackEl.style.color = "#00ff66";
+                }
+            }
+
+            // Hit player check
+            if (dist < player.radius + slash.radius) {
+                playerHP--;
+                updateHPBars();
+                feedbackEl.textContent = "💥 HIT! Slash penetrated defenses.";
+                feedbackEl.style.color = "#ff3333";
+                slashes.splice(index, 1);
+                if (playerHP <= 0) {
+                    failGame("💀 You were cut down by the King of Spades.");
+                }
+            }
+        }
+
+        // Clean up out of bounds slashes
+        if (slash.x < -50 || slash.x > canvas.width + 50) {
+            slashes.splice(index, 1);
+        }
+    });
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Duel Background line
+    ctx.strokeStyle = "#222";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, 100); ctx.lineTo(canvas.width, 100); ctx.stroke();
+
+    // Draw Boss (King)
+    ctx.beginPath();
+    ctx.arc(boss.x, boss.y, boss.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ff1a1a";
+    ctx.shadowColor = "#ff1a1a";
+    ctx.shadowBlur = 20;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Draw Player
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#00ffff";
+    ctx.shadowColor = "#00ffff";
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Draw Parry Zone Indicator
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, 40, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw Shield Ring if active
+    if (player.shieldActive) {
+        ctx.strokeStyle = "#00ffff";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, 30, 0, 2 * Math.PI);
+        ctx.stroke();
+    }
+
+    // Draw Slashes (Slash particles/circles)
+    slashes.forEach(slash => {
+        ctx.beginPath();
+        ctx.arc(slash.x, slash.y, slash.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = slash.deflected ? "#00ffff" : "#ff3333";
+        ctx.shadowColor = slash.deflected ? "#00ffff" : "#ff3333";
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+}
+
+function gameLoop() {
+    if (!gameActive) return;
+    update();
+    draw();
+    loopId = requestAnimationFrame(gameLoop);
+}
+
+function failGame(msg) {
+    gameActive = false;
+    clearTimeout(attackTimeout);
+    cancelAnimationFrame(loopId);
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+    setTimeout(() => {
+        startBtn.style.display = "inline-block";
+        startBtn.textContent = "Draw Weapon Again";
+    }, 1500);
+}
+
+function winGame() {
+    gameActive = false;
+    clearTimeout(attackTimeout);
+    cancelAnimationFrame(loopId);
+    resultEl.textContent = "🏆 Victory! The King of Spades has been defeated.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/spades/K", { method: "POST" });
+}
+</script>
+
+<style>
+#fight-canvas {
+    border: 3px solid #ff3434;
+    border-radius: 8px;
+    background: #050505;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.feedback-text {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

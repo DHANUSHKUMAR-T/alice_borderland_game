@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+<div class="game-card-display">
+
+<h2 class="menu-title">♥ 8 – Emotional Trigger</h2>
+
+<p class="game-text">
+The system reveals emotional statements.<br>
+React or Ignore carefully.
+</p>
+
+<button id="start-btn" class="btn red-btn">Start Game</button>
+
+<div id="game-area" style="display:none;">
+
+<p id="trust-display">Trust: ❤️❤️❤️</p>
+
+<div class="trigger-box" id="trigger-box"></div>
+
+<div id="choices">
+<button class="option-btn" onclick="answer(true)">REACT</button>
+<button class="option-btn" onclick="answer(false)">IGNORE</button>
+</div>
+
+<p id="result"></p>
+
+<div class="button-row">
+<a id="next-btn"
+href="{{ url_for('main.suit_cards', suit='hearts') }}"
+class="btn card-btn"
+style="display:none;">
+Next Card →
+</a>
+
+<a href="{{ url_for('main.suit_cards', suit='hearts') }}"
+class="btn card-btn">
+Back
+</a>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+window.onload=function(){
+
+const startBtn=document.getElementById("start-btn");
+const gameArea=document.getElementById("game-area");
+const triggerBox=document.getElementById("trigger-box");
+const trustDisplay=document.getElementById("trust-display");
+const resultEl=document.getElementById("result");
+const nextBtn=document.getElementById("next-btn");
+
+let trust=3;
+let round=0;
+const maxRounds=4;
+
+let currentTrigger;
+
+const realEvents = [
+"Arisu suddenly stops speaking and stares at the floor.",
+"Usagi quietly checks the exit door.",
+"Karube looks angry but says nothing.",
+"Chōta seems nervous and avoids eye contact.",
+"Kuina watches everyone carefully.",
+"Chishiya smiles as if he already knows the answer."
+];
+
+const trapEvents = [
+"A voice says: Arisu is hiding something from you.",
+"A voice says: Usagi is planning to betray the group.",
+"A voice says: Karube has already chosen who should die.",
+"A voice says: Chōta cannot be trusted.",
+"A voice says: Kuina is manipulating everyone.",
+"A voice says: Chishiya is lying about everything."
+];
+
+startBtn.onclick=function(){
+startBtn.style.display="none";
+gameArea.style.display="block";
+startGame();
+}
+
+function startGame(){
+
+trust=3;
+round=0;
+updateTrust();
+
+nextTrigger();
+
+}
+
+function updateTrust(){
+trustDisplay.textContent="Trust: "+"❤️".repeat(trust);
+}
+
+function nextTrigger(){
+
+if(round>=maxRounds){
+winGame();
+return;
+}
+
+let isReal=Math.random()<0.5;
+
+if(isReal){
+triggerBox.textContent=
+realEvents[Math.floor(Math.random()*realEvents.length)];
+currentTrigger=true;
+}
+else{
+triggerBox.textContent=
+trapEvents[Math.floor(Math.random()*trapEvents.length)];
+currentTrigger=false;
+}
+
+}
+
+window.answer=function(choice){
+
+if(choice===currentTrigger){
+
+resultEl.textContent="✔ You kept control.";
+resultEl.style.color="#00ff66";
+
+}
+else{
+
+trust--;
+updateTrust();
+
+resultEl.textContent="❌ You reacted emotionally.";
+resultEl.style.color="#ff3333";
+
+}
+
+round++;
+
+setTimeout(()=>{
+resultEl.textContent="";
+nextTrigger();
+},1500);
+
+}
+
+function winGame(){
+
+resultEl.innerHTML=
+"🎉 You controlled your emotions.<br><br>"+
+"<b>Not every trigger deserves a reaction.</b>";
+
+resultEl.style.color="#00ff66";
+
+nextBtn.style.display="inline-block";
+
+fetch("/complete/hearts/8",{method:"POST"});
+
+}
+
+}
+
+</script>
+
+<style>
+
+.trigger-box{
+margin:25px auto;
+padding:20px;
+max-width:500px;
+border:2px solid red;
+background:#111;
+font-size:18px;
+}
+
+.option-btn{
+margin:10px;
+padding:12px 20px;
+border:2px solid red;
+background:#111;
+color:white;
+cursor:pointer;
+}
+
+.option-btn:hover{
+transform:scale(1.05);
+}
+
+</style>
+
+{% endblock %}

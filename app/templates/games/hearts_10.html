@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+<div class="game-card-display">
+
+<h2 class="menu-title">♥ 10 – Last Connection</h2>
+
+<p class="game-text">
+You are connected to another player.<br>
+Only one of you can survive.
+</p>
+
+<button id="start-btn" class="btn red-btn">Start Connection</button>
+
+<div id="game-area" style="display:none;">
+
+<p id="partner-text">Paired with: Unknown Player</p>
+
+<p id="timer">Connection Collapse In: 12s</p>
+
+<div class="connection-line"></div>
+
+<p id="message" class="system-msg"></p>
+
+<div class="button-row">
+
+<button class="btn card-btn danger-btn" onclick="disconnect()">
+Disconnect
+</button>
+
+<button class="btn card-btn safe-btn" onclick="hold()">
+Hold Connection
+</button>
+
+</div>
+
+<p id="result"></p>
+
+<div class="button-row">
+
+<a id="next-btn"
+href="{{ url_for('main.suit_cards', suit='hearts') }}"
+class="btn card-btn"
+style="display:none;">
+Next Card →
+</a>
+
+<a href="{{ url_for('main.suit_cards', suit='hearts') }}"
+class="btn card-btn">
+Back
+</a>
+
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+window.onload=function(){
+
+const startBtn=document.getElementById("start-btn");
+const gameArea=document.getElementById("game-area");
+const timerText=document.getElementById("timer");
+const resultEl=document.getElementById("result");
+const nextBtn=document.getElementById("next-btn");
+const msg=document.getElementById("message");
+
+let time=12;
+let timerInterval;
+let disconnected=false;
+
+const partners=["Arisu","Usagi","Chishiya","Kuina"];
+
+const partnerMessages=[
+"Please don't disconnect… we can survive together.",
+"I don't trust this system.",
+"If you disconnect… I die.",
+"Wait… something feels wrong.",
+"We shouldn't rush this.",
+"Do you trust me?"
+];
+
+const systemMessages=[
+"System message: One player must disconnect.",
+"System message: Survival probability recalculating.",
+"System message: Emotional hesitation detected.",
+"System message: Sacrifice increases survival score.",
+"System message: Partner signal unstable."
+];
+
+startBtn.onclick=function(){
+
+startBtn.style.display="none";
+gameArea.style.display="block";
+
+let partner=partners[Math.floor(Math.random()*partners.length)];
+document.getElementById("partner-text").textContent="Paired with: "+partner;
+
+startGame();
+
+}
+
+function startGame(){
+
+timerText.textContent="Connection Collapse In: "+time+"s";
+
+timerInterval=setInterval(()=>{
+
+time--;
+
+timerText.textContent="Connection Collapse In: "+time+"s";
+
+randomMessages();
+
+if(time<=0){
+
+clearInterval(timerInterval);
+
+if(!disconnected){
+sacrificeWin();
+}
+
+}
+
+},1000);
+
+}
+
+function randomMessages(){
+
+let random=Math.random();
+
+if(random<0.3){
+
+msg.textContent=partnerMessages[Math.floor(Math.random()*partnerMessages.length)];
+msg.style.color="#66ffcc";
+
+}
+
+else if(random<0.6){
+
+msg.textContent=systemMessages[Math.floor(Math.random()*systemMessages.length)];
+msg.style.color="#ffaa00";
+
+}
+
+}
+
+window.disconnect=function(){
+
+if(disconnected) return;
+
+disconnected=true;
+
+clearInterval(timerInterval);
+
+if(time>7){
+
+resultEl.innerHTML="💔 You disconnected immediately.<br>Your partner disappears.";
+
+}
+
+else if(time>3){
+
+resultEl.innerHTML="⚖️ The system judged your hesitation.";
+
+}
+
+else{
+
+resultEl.innerHTML="⚠️ You disconnected at the last second.";
+
+}
+
+resultEl.style.color="#ffaa00";
+
+setTimeout(()=>{
+winGame();
+},2500);
+
+}
+
+window.hold=function(){
+
+msg.textContent="You hold the connection…";
+msg.style.color="#00ff66";
+
+}
+
+function sacrificeWin(){
+
+resultEl.innerHTML="🎉 You held the connection until collapse.<br><b>The system recognized your sacrifice.</b>";
+
+resultEl.style.color="#00ff66";
+
+setTimeout(()=>{
+winGame();
+},2500);
+
+}
+
+function winGame(){
+
+nextBtn.style.display="inline-block";
+
+fetch("/complete/hearts/10",{method:"POST"});
+
+}
+
+}
+
+</script>
+
+<style>
+
+.connection-line{
+width:100%;
+height:4px;
+background:red;
+margin:20px 0;
+box-shadow:0 0 10px red;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{opacity:0.5;}
+50%{opacity:1;}
+100%{opacity:0.5;}
+}
+
+.system-msg{
+margin:10px 0;
+font-size:16px;
+min-height:20px;
+}
+
+.danger-btn{
+border-color:#ff3333;
+}
+
+.safe-btn{
+border-color:#00ff66;
+}
+
+</style>
+
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+<div class="game-card-display">
+
+<h2 class="menu-title">♦ 8 – Probability Chamber</h2>
+
+<p class="game-text">
+10 doors appear.<br>
+The survival probability may be misleading.
+</p>
+
+<button id="start-btn" class="btn red-btn">Enter Chamber</button>
+
+<div id="game-area" style="display:none;">
+
+<div id="doors"></div>
+
+<p id="result"></p>
+
+<div class="button-row">
+
+<a id="next-btn"
+href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+class="btn card-btn"
+style="display:none;">
+Next Card →
+</a>
+
+<a href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+class="btn card-btn">
+Back
+</a>
+
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+window.onload=function(){
+
+const startBtn=document.getElementById("start-btn");
+const gameArea=document.getElementById("game-area");
+const doorsDiv=document.getElementById("doors");
+const resultEl=document.getElementById("result");
+const nextBtn=document.getElementById("next-btn");
+
+startBtn.onclick=function(){
+
+startBtn.style.display="none";
+gameArea.style.display="block";
+
+generateDoors();
+
+}
+
+function generateDoors(){
+
+doorsDiv.innerHTML="";
+
+for(let i=1;i<=10;i++){
+
+let fakeProb=Math.floor(Math.random()*90)+10;
+
+doorsDiv.innerHTML+=`
+<div class="door-card" onclick="chooseDoor(${i})">
+🚪 Door ${i}<br>
+<span class="prob">${fakeProb}% survival</span>
+</div>
+`;
+
+}
+
+}
+
+window.chooseDoor=function(door){
+
+// Real rule: odd doors survive
+
+if(door % 2 === 1){
+
+resultEl.innerHTML=
+"🎉 Door "+door+" opens.<br>You survived the chamber.";
+
+resultEl.style.color="#00ff66";
+
+nextBtn.style.display="inline-block";
+
+fetch("/complete/diamonds/8",{method:"POST"});
+
+}
+
+else{
+
+resultEl.innerHTML=
+"💀 Door "+door+" was a trap.";
+
+resultEl.style.color="#ff3333";
+
+setTimeout(()=>{
+generateDoors();
+resultEl.textContent="";
+},2000);
+
+}
+
+}
+
+}
+
+</script>
+
+<style>
+
+#doors{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:15px;
+margin-top:20px;
+}
+
+.door-card{
+padding:15px;
+border:2px solid red;
+background:#111;
+color:white;
+cursor:pointer;
+text-align:center;
+}
+
+.door-card:hover{
+transform:scale(1.05);
+box-shadow:0 0 10px red;
+}
+
+.prob{
+color:#ffaa00;
+font-size:14px;
+}
+
+</style>
+
+{% endblock %}

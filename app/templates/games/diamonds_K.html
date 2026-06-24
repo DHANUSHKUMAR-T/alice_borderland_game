@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♦ Diamonds King – Beauty Contest</h2>
+
+        <p class="game-text">
+            <b>The Beauty Contest (Equilibrium):</b> Five participants choose a number between <b>0 and 100</b>. The average of all chosen numbers is multiplied by <b>0.8</b>. The participant closest to this target wins the round and gains 1 point. First to <b>3 points</b> wins the game.
+        </p>
+
+        <div id="game-area">
+            <!-- Leaderboard -->
+            <div class="leaderboard-box">
+                <span class="leaderboard-title">Leaderboard (First to 3):</span>
+                <div class="leaderboard-grid">
+                    <div>👤 You: <span id="pts-player" class="pts">0</span></div>
+                    <div>🤖 AI 1 (Logical): <span id="pts-ai1" class="pts">0</span></div>
+                    <div>🤖 AI 2 (Adaptive): <span id="pts-ai2" class="pts">0</span></div>
+                    <div>👑 King of Diamonds: <span id="pts-king" class="pts">0</span></div>
+                </div>
+            </div>
+
+            <div class="trial-panel">
+                <p class="trial-intro">Input your number choice:</p>
+                <div class="input-row">
+                    <input type="number" id="contest-input" min="0" max="100" placeholder="0 - 100" autofocus>
+                    <button class="suspect-btn submit-btn" onclick="submitChoice()">Submit Choice</button>
+                </div>
+            </div>
+
+            <!-- Round Results Panel -->
+            <div id="round-results" class="results-panel" style="display:none;">
+                <h4 style="color: #66ccff; margin-bottom: 8px;">Round Results</h4>
+                <div id="results-text" class="results-text"></div>
+            </div>
+
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn" style="display:none;" onclick="initGame()">Restart Contest</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='diamonds') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='diamonds') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/KD.png"
+             class="card-image glow-float"
+             alt="Diamonds King">
+    </div>
+</div>
+
+<script>
+const inputEl = document.getElementById("contest-input");
+const resultsPanel = document.getElementById("round-results");
+const resultsText = document.getElementById("results-text");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+const startBtn = document.getElementById("start-btn");
+
+const ptsPlayerEl = document.getElementById("pts-player");
+const ptsAi1El = document.getElementById("pts-ai1");
+const ptsAi2El = document.getElementById("pts-ai2");
+const ptsKingEl = document.getElementById("pts-king");
+
+let scores = { player: 0, ai1: 0, ai2: 0, king: 0 };
+let gameActive = true;
+let prevTarget = 30; // initial seed for adaptive AIs
+
+inputEl.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        submitChoice();
+    }
+});
+
+function initGame() {
+    scores = { player: 0, ai1: 0, ai2: 0, king: 0 };
+    gameActive = true;
+    prevTarget = 30;
+    resultEl.textContent = "";
+    resultsPanel.style.display = "none";
+    resultsText.innerHTML = "";
+    nextBtn.style.display = "none";
+    startBtn.style.display = "none";
+    inputEl.value = "";
+    inputEl.disabled = false;
+    updateScoresDisplay();
+}
+
+function updateScoresDisplay() {
+    ptsPlayerEl.textContent = scores.player;
+    ptsAi1El.textContent = scores.ai1;
+    ptsAi2El.textContent = scores.ai2;
+    ptsKingEl.textContent = scores.king;
+}
+
+function submitChoice() {
+    if (!gameActive) return;
+
+    let pChoice = parseFloat(inputEl.value.trim());
+    if (isNaN(pChoice) || pChoice < 0 || pChoice > 100) {
+        alert("Please enter a number between 0 and 100.");
+        return;
+    }
+
+    // AI Choices
+    // AI 1 (Logical/Nash): tends to bid close to 0 or 12
+    let ai1Choice = Math.max(0, Math.floor(10 + Math.random() * 8));
+
+    // AI 2 (Adaptive): mimics previous target with slight variation
+    let ai2Choice = Math.max(0, Math.min(100, Math.floor(prevTarget + (Math.random() * 10 - 5))));
+
+    // King of Diamonds (Smart/Strategic): picks slightly below the expected average of other players
+    let expectedOthers = (pChoice + ai1Choice + ai2Choice) / 3;
+    let kingChoice = Math.max(0, Math.min(100, Math.floor(expectedOthers * 0.75)));
+
+    // Calculate actual average and target
+    let sum = pChoice + ai1Choice + ai2Choice + kingChoice;
+    let avg = sum / 4;
+    let target = avg * 0.8;
+    prevTarget = target;
+
+    // Determine winner
+    let choices = [
+        { name: "player", label: "You", val: pChoice },
+        { name: "ai1", label: "AI 1 (Logical)", val: ai1Choice },
+        { name: "ai2", label: "AI 2 (Adaptive)", val: ai2Choice },
+        { name: "king", label: "King of Diamonds", val: kingChoice }
+    ];
+
+    choices.forEach(c => {
+        c.diff = Math.abs(c.val - target);
+    });
+
+    // Sort by diff ascending
+    choices.sort((a, b) => a.diff - b.diff);
+    let winner = choices[0];
+    scores[winner.name]++;
+
+    updateScoresDisplay();
+
+    // Render round logs
+    resultsPanel.style.display = "block";
+    resultsText.innerHTML = `
+        • Your choice: <b>${pChoice}</b><br>
+        • AI 1 choice: <b>${ai1Choice}</b><br>
+        • AI 2 choice: <b>${ai2Choice}</b><br>
+        • King of Diamonds choice: <b>${kingChoice}</b><br>
+        <span style="color:#00ff66;">• Average: ${avg.toFixed(2)} → Target (0.8x): <b>${target.toFixed(2)}</b></span><br>
+        👑 Winner of this round: <b>${winner.label}</b> (Closest by ${winner.diff.toFixed(2)})
+    `;
+
+    inputEl.value = "";
+    inputEl.focus();
+
+    // Check game end conditions
+    if (scores.player >= 3) {
+        winGame();
+    } else if (scores.ai1 >= 3 || scores.ai2 >= 3 || scores.king >= 3) {
+        failGame();
+    }
+}
+
+function failGame() {
+    gameActive = false;
+    inputEl.disabled = true;
+    resultEl.textContent = "💥 Defeat. The King or another competitor reached 3 points first. Laser activated.";
+    resultEl.style.color = "#ff3333";
+    startBtn.style.display = "inline-block";
+}
+
+function winGame() {
+    gameActive = false;
+    inputEl.disabled = true;
+    resultEl.textContent = "🏆 Victory! You reached 3 points first and solved the Equilibrium Beauty Contest.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/diamonds/K", { method: "POST" });
+}
+</script>
+
+<style>
+.leaderboard-box {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #335577;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 0;
+    text-align: left;
+}
+.leaderboard-title {
+    font-size: 15px;
+    color: #66ccff;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.leaderboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    font-size: 15px;
+}
+.pts {
+    font-weight: bold;
+    color: #00ff66;
+}
+.trial-panel {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #66ccff;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+    text-align: left;
+}
+.trial-intro {
+    font-size: 15px;
+    color: #aae6ff;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.input-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+.input-row input {
+    flex-grow: 1;
+    background: #111;
+    color: white;
+    border: 2px solid #66ccff;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 18px;
+    text-align: center;
+}
+.submit-btn {
+    border-color: #66ccff !important;
+    color: #66ccff !important;
+}
+.submit-btn:hover {
+    background: #66ccff !important;
+    color: black !important;
+}
+.results-panel {
+    background: rgba(0, 50, 80, 0.1);
+    border-left: 4px solid #66ccff;
+    padding: 12px;
+    margin: 15px 0;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

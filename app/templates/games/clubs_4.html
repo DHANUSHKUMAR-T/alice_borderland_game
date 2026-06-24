@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+  <!-- FLOATING CARD -->
+  <div class="floating-card">
+    <img src="https://deckofcardsapi.com/static/img/4C.png"
+         class="card-image glow-float"
+         alt="Clubs 4">
+  </div>
+
+  <div class="game-card-display">
+
+    <h2 class="menu-title">♣ Clubs 4 – Stillness Check</h2>
+
+    <p class="game-text">
+      Do nothing.<br>
+      <b>Absolutely nothing.</b>
+    </p>
+
+    <p id="status" class="status-text">Preparing…</p>
+    <p id="timer" class="timer-text"></p>
+
+    <p id="result" class="result-text"></p>
+
+    <div class="button-row">
+      <a id="next-btn"
+         href="{{ url_for('main.suit_cards', suit='clubs') }}"
+         class="btn card-btn"
+         style="display:none;">
+        Next Card →
+      </a>
+
+      <a href="{{ url_for('main.suit_cards', suit='clubs') }}"
+         class="btn card-btn">
+        Back
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ===============================
+   STATE
+================================ */
+let timer = 6;
+let interval = null;
+let active = false;      // ❗ starts inactive
+let armed = false;       // stillness armed AFTER delay
+
+/* ===============================
+   ELEMENTS
+================================ */
+const timerEl = document.getElementById("timer");
+const resultEl = document.getElementById("result");
+const statusEl = document.getElementById("status");
+const nextBtn = document.getElementById("next-btn");
+
+/* ===============================
+   BLOCK ACTION
+================================ */
+function blockAction(e) {
+  if (!armed) return; // ignore during prep
+  e.preventDefault();
+  fail("❌ Action detected. Stillness broken.");
+}
+
+function addListeners() {
+  document.addEventListener("click", blockAction, true);
+  document.addEventListener("touchstart", blockAction, true);
+  document.addEventListener("keydown", blockAction, true);
+  document.addEventListener("mousemove", blockAction, true);
+}
+
+function removeListeners() {
+  document.removeEventListener("click", blockAction, true);
+  document.removeEventListener("touchstart", blockAction, true);
+  document.removeEventListener("keydown", blockAction, true);
+  document.removeEventListener("mousemove", blockAction, true);
+}
+
+/* ===============================
+   PREP PHASE
+================================ */
+function prepareGame() {
+  statusEl.textContent = "Get ready…";
+  timerEl.textContent = "";
+
+  setTimeout(() => {
+    startGame();
+  }, 2000); // ⏳ 2s grace period
+}
+
+/* ===============================
+   START GAME
+================================ */
+function startGame() {
+  active = true;
+  armed = true;
+  timer = 6;
+
+  statusEl.textContent = "Do nothing.";
+  timerEl.textContent = `Time Left: ${timer}s`;
+
+  addListeners();
+  startTimer();
+}
+
+/* ===============================
+   TIMER
+================================ */
+function startTimer() {
+  interval = setInterval(() => {
+    if (!active) return;
+
+    timer--;
+    timerEl.textContent = `Time Left: ${timer}s`;
+
+    if (timer <= 0) {
+      clearInterval(interval);
+      success();
+    }
+  }, 1000);
+}
+
+/* ===============================
+   FAIL
+================================ */
+function fail(msg) {
+  if (!active) return;
+
+  active = false;
+  armed = false;
+  clearInterval(interval);
+  removeListeners();
+
+  resultEl.textContent = msg;
+  resultEl.style.color = "#ff4444";
+}
+
+/* ===============================
+   SUCCESS
+================================ */
+function success() {
+  active = false;
+  armed = false;
+  removeListeners();
+
+  resultEl.textContent =
+    "🏆 The hardest move is not moving.";
+  resultEl.style.color = "#00ff66";
+
+  nextBtn.style.display = "inline-block";
+  fetch("/complete/clubs/4", { method: "POST" });
+}
+
+/* ===============================
+   INIT
+================================ */
+prepareGame();
+</script>
+
+<style>
+.status-text {
+  font-size: 16px;
+  color: #ffcccc;
+  margin-top: 12px;
+}
+
+.timer-text {
+  font-size: 22px;
+  color: #ffcccc;
+  margin-top: 6px;
+}
+
+.result-text {
+  margin-top: 16px;
+  font-size: 18px;
+  min-height: 26px;
+  text-align: center;
+}
+
+.button-row {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+}
+</style>
+
+{% endblock %}

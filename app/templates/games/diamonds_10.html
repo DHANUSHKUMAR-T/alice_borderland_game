@@ -1,0 +1,281 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="game-container">
+  <div class="game-card-display">
+    <h2 class="menu-title">♦ 10 – Game Theory</h2>
+
+    <p class="game-text">
+      Predict the opponent's rational move.<br />
+      Win or draw to survive.
+    </p>
+
+    <button id="start-btn" class="btn red-btn">Start Game</button>
+
+    <div id="game-area" style="display: none">
+      <div id="board" class="board"></div>
+
+      <p id="status"></p>
+
+      <div class="button-row">
+        <a
+          id="next-btn"
+          href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+          class="btn card-btn"
+          style="display: none"
+        >
+          Next Card →
+        </a>
+
+        <a
+          href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+          class="btn card-btn"
+        >
+          Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.onload = function () {
+    const startBtn = document.getElementById("start-btn");
+    const gameArea = document.getElementById("game-area");
+    const boardDiv = document.getElementById("board");
+    const statusEl = document.getElementById("status");
+    const nextBtn = document.getElementById("next-btn");
+
+    let board = ["", "", "", "", "", "", "", "", ""];
+
+    let playerWins = 0;
+    const targetWins = 3;
+
+    startBtn.onclick = function () {
+      startBtn.style.display = "none";
+      gameArea.style.display = "block";
+
+      drawBoard();
+    };
+
+    /* -------------------
+    DRAW BOARD
+    ------------------- */
+
+    function drawBoard() {
+      boardDiv.innerHTML = "";
+
+      for (let i = 0; i < 9; i++) {
+        boardDiv.innerHTML += `
+    <div class="cell" onclick="playerMove(${i})">
+    ${board[i]}
+    </div>
+    `;
+      }
+
+      statusEl.textContent = "Wins: " + playerWins + " / " + targetWins;
+    }
+
+    /* -------------------
+    PLAYER MOVE
+    ------------------- */
+
+    window.playerMove = function (index) {
+      if (board[index] !== "" || checkWinner()) return;
+
+      board[index] = "X";
+
+      drawBoard();
+
+      let winner = checkWinner();
+
+      if (winner === "X") {
+        playerWins++;
+
+        if (playerWins >= targetWins) {
+          endGame("🎉 You dominated the strategy.");
+
+          return;
+        }
+
+        statusEl.textContent = "✔ You win this round!";
+
+        setTimeout(resetBoard, 1500);
+
+        return;
+      }
+
+      if (boardFull()) {
+        statusEl.textContent = "🤝 Draw. Rematch.";
+
+        setTimeout(resetBoard, 1500);
+
+        return;
+      }
+
+      setTimeout(aiMove, 400);
+    };
+
+    /* -------------------
+    AI MOVE
+    ------------------- */
+
+    function aiMove() {
+      let move = bestMove();
+
+      board[move] = "O";
+
+      drawBoard();
+
+      let winner = checkWinner();
+
+      if (winner === "O") {
+        failGame();
+
+        return;
+      }
+
+      if (boardFull()) {
+        statusEl.textContent = "🤝 Draw. Rematch.";
+
+        setTimeout(resetBoard, 1500);
+      }
+    }
+
+    /* -------------------
+    AI STRATEGY
+    ------------------- */
+
+    function bestMove() {
+      // win if possible
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === "") {
+          board[i] = "O";
+          if (checkWinner() === "O") {
+            board[i] = "";
+            return i;
+          }
+          board[i] = "";
+        }
+      }
+
+      // block player
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === "") {
+          board[i] = "X";
+          if (checkWinner() === "X") {
+            board[i] = "";
+            return i;
+          }
+          board[i] = "";
+        }
+      }
+
+      // center
+      if (board[4] === "") return 4;
+
+      // random
+      let empty = board
+        .map((v, i) => (v === "" ? i : null))
+        .filter((v) => v !== null);
+
+      return empty[Math.floor(Math.random() * empty.length)];
+    }
+
+    /* -------------------
+    CHECK WINNER
+    ------------------- */
+
+    function checkWinner() {
+      const combos = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+
+      for (let c of combos) {
+        let [a, b, c2] = c;
+
+        if (board[a] && board[a] === board[b] && board[a] === board[c2]) {
+          return board[a];
+        }
+      }
+
+      return null;
+    }
+
+    /* -------------------
+    BOARD FULL
+    ------------------- */
+
+    function boardFull() {
+      return board.every((cell) => cell !== "");
+    }
+
+    /* -------------------
+    RESET BOARD
+    ------------------- */
+
+    function resetBoard() {
+      board = ["", "", "", "", "", "", "", "", ""];
+
+      drawBoard();
+    }
+
+    /* -------------------
+    WIN GAME
+    ------------------- */
+
+    function endGame(msg) {
+      statusEl.textContent = msg;
+
+      nextBtn.style.display = "inline-block";
+
+      fetch("/complete/diamonds/10", { method: "POST" });
+    }
+
+    /* -------------------
+    FAIL GAME
+    ------------------- */
+
+    function failGame() {
+      statusEl.textContent = "💀 AI wins. Strategy failed.";
+
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    }
+  };
+</script>
+
+<style>
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    gap: 10px;
+    justify-content: center;
+    margin: 20px;
+  }
+
+  .cell {
+    width: 80px;
+    height: 80px;
+    border: 2px solid red;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    cursor: pointer;
+    background: #111;
+  }
+
+  .cell:hover {
+    background: #222;
+  }
+</style>
+
+{% endblock %}

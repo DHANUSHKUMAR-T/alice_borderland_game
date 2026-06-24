@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♣ Clubs Queen – Relay Connection</h2>
+
+        <p class="game-text">
+            <b>Power Link:</b> Click on the connection nodes (circular icons) to rotate them. Construct a continuous glowing circuit from the Input Port (left cyan triangle) to the Output Port (right green triangle) to synchronize the grid before time runs out.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Time: <span id="timer-val" style="color: #ff3333; font-weight: bold;">30s</span></div>
+            </div>
+
+            <canvas id="pipeline-canvas" width="360" height="360"></canvas>
+
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn" onclick="initGame()">Restart Connection</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='clubs') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='clubs') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/QC.png"
+             class="card-image glow-float"
+             alt="Clubs Queen">
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("pipeline-canvas");
+const ctx = canvas.getContext("2d");
+const timerEl = document.getElementById("timer-val");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+const startBtn = document.getElementById("start-btn");
+
+const cols = 3;
+const rows = 3;
+const cellSize = canvas.width / cols;
+
+// Grid Nodes: 3x3
+// Each node has 4 connection directions: [Up, Right, Down, Left] (boolean values)
+// Clicking rotates the connection array: e.g. [T, F, F, T] becomes [T, T, F, F]
+let grid = [];
+let timer = 30;
+let timerInterval = null;
+let gameActive = true;
+
+// Pre-defined target connection nodes structure for solution
+// Input: Row 1, Column 0 (Left Entry)
+// Output: Row 1, Column 2 (Right Exit)
+function initGame() {
+    timer = 30;
+    gameActive = true;
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+    startBtn.style.display = "none";
+    timerEl.textContent = "30s";
+    timerEl.style.color = "#00ff66";
+
+    // Set up 3x3 nodes with connections
+    // Solution path: (0,1) [L, R] -> (1,1) [L, R] -> (2,1) [L, R]
+    // To make it fun, let's randomize their initial rotations
+    grid = [
+        { r: 0, c: 0, dirs: [false, true, true, false], rot: 0 }, // Corner
+        { r: 0, c: 1, dirs: [false, true, false, true], rot: 0 }, // Straight
+        { r: 0, c: 2, dirs: [false, false, true, true], rot: 0 }, // Corner
+        
+        { r: 1, c: 0, dirs: [false, true, false, true], rot: 0 }, // Entry (Horizontal)
+        { r: 1, c: 1, dirs: [false, true, false, true], rot: 0 }, // Middle (Horizontal)
+        { r: 1, c: 2, dirs: [false, true, false, true], rot: 0 }, // Exit (Horizontal)
+
+        { r: 2, c: 0, dirs: [true, true, false, false], rot: 0 }, // Corner
+        { r: 2, c: 1, dirs: [false, true, false, true], rot: 0 }, // Straight
+        { r: 2, c: 2, dirs: [true, false, false, true], rot: 0 }  // Corner
+    ];
+
+    // Randomly rotate initially
+    grid.forEach(node => {
+        let rotations = Math.floor(Math.random() * 4);
+        for (let i = 0; i < rotations; i++) {
+            rotateNode(node, false);
+        }
+    });
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (!gameActive) return;
+        timer--;
+        timerEl.textContent = `${timer}s`;
+        if (timer <= 5) timerEl.style.color = "#ff3333";
+        if (timer <= 0) {
+            failGame();
+        }
+    }, 1000);
+
+    draw();
+}
+
+function rotateNode(node, redraw = true) {
+    // Shift dirs array: last element becomes first
+    let last = node.dirs.pop();
+    node.dirs.unshift(last);
+    node.rot = (node.rot + 90) % 360;
+    if (redraw) {
+        draw();
+        checkConnection();
+    }
+}
+
+canvas.onclick = e => {
+    if (!gameActive) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const c = Math.floor(x / cellSize);
+    const r = Math.floor(y / cellSize);
+
+    const node = grid.find(n => n.r === r && n.c === c);
+    if (node) {
+        rotateNode(node);
+    }
+};
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Grid lines
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= cols; i++) {
+        ctx.beginPath(); ctx.moveTo(i * cellSize, 0); ctx.lineTo(i * cellSize, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i * cellSize); ctx.lineTo(canvas.width, i * cellSize); ctx.stroke();
+    }
+
+    // Input Port (cyan triangle on left of row 1)
+    ctx.fillStyle = "#00ffff";
+    ctx.beginPath();
+    ctx.moveTo(0, 1.5 * cellSize - 15);
+    ctx.lineTo(15, 1.5 * cellSize);
+    ctx.lineTo(0, 1.5 * cellSize + 15);
+    ctx.fill();
+
+    // Output Port (green triangle on right of row 1)
+    ctx.fillStyle = "#00ff66";
+    ctx.beginPath();
+    ctx.moveTo(canvas.width, 1.5 * cellSize - 15);
+    ctx.lineTo(canvas.width - 15, 1.5 * cellSize);
+    ctx.lineTo(canvas.width, 1.5 * cellSize + 15);
+    ctx.fill();
+
+    // Draw connection lines inside cells
+    grid.forEach(node => {
+        let cx = (node.c + 0.5) * cellSize;
+        let cy = (node.r + 0.5) * cellSize;
+
+        // Draw node center circle
+        ctx.beginPath();
+        ctx.arc(cx, cy, 10, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ffaa00";
+        ctx.fill();
+
+        // Draw connections
+        ctx.strokeStyle = "#ffaa00";
+        ctx.lineWidth = 6;
+        ctx.lineCap = "round";
+
+        // Up [0]
+        if (node.dirs[0]) {
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - cellSize/2 + 5); ctx.stroke();
+        }
+        // Right [1]
+        if (node.dirs[1]) {
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + cellSize/2 - 5, cy); ctx.stroke();
+        }
+        // Down [2]
+        if (node.dirs[2]) {
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy + cellSize/2 - 5); ctx.stroke();
+        }
+        // Left [3]
+        if (node.dirs[3]) {
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - cellSize/2 + 5, cy); ctx.stroke();
+        }
+    });
+}
+
+function checkConnection() {
+    // DFS from Input (1,0) to Output (1,2)
+    // Leftmost entry is row 1, col 0. It must connect Left.
+    let startNode = grid.find(n => n.r === 1 && n.c === 0);
+    if (!startNode || !startNode.dirs[3]) return; // Must have connection pointing Left (to input)
+
+    let visited = new Set();
+    let connected = dfs(1, 0, visited);
+
+    if (connected) {
+        winGame();
+    }
+}
+
+function dfs(r, c, visited) {
+    let key = `${r},${c}`;
+    if (visited.has(key)) return false;
+    visited.add(key);
+
+    let node = grid.find(n => n.r === r && n.c === c);
+    if (!node) return false;
+
+    // Check if we reached Output node (1, 2) and it has connection pointing Right
+    if (r === 1 && c === 2 && node.dirs[1]) {
+        return true;
+    }
+
+    // Try directions: [Up, Right, Down, Left]
+    // Up (r-1, c)
+    if (node.dirs[0] && r > 0) {
+        let neighbor = grid.find(n => n.r === r - 1 && n.c === c);
+        if (neighbor && neighbor.dirs[2]) { // neighbor must connect Down
+            if (dfs(r - 1, c, visited)) return true;
+        }
+    }
+    // Right (r, c+1)
+    if (node.dirs[1] && c < cols - 1) {
+        let neighbor = grid.find(n => n.r === r && n.c === c + 1);
+        if (neighbor && neighbor.dirs[3]) { // neighbor must connect Left
+            if (dfs(r, c + 1, visited)) return true;
+        }
+    }
+    // Down (r+1, c)
+    if (node.dirs[2] && r < rows - 1) {
+        let neighbor = grid.find(n => n.r === r + 1 && n.c === c);
+        if (neighbor && neighbor.dirs[0]) { // neighbor must connect Up
+            if (dfs(r + 1, c, visited)) return true;
+        }
+    }
+    // Left (r, c-1)
+    if (node.dirs[3] && c > 0) {
+        let neighbor = grid.find(n => n.r === r && n.c === c - 1);
+        if (neighbor && neighbor.dirs[1]) { // neighbor must connect Right
+            if (dfs(r, c - 1, visited)) return true;
+        }
+    }
+
+    return false;
+}
+
+function failGame() {
+    gameActive = false;
+    clearInterval(timerInterval);
+    resultEl.textContent = "💥 Connection Lost. Power grid overloaded.";
+    resultEl.style.color = "#ff3333";
+    startBtn.style.display = "inline-block";
+}
+
+function winGame() {
+    gameActive = false;
+    clearInterval(timerInterval);
+    resultEl.textContent = "🏆 Sync complete! Electrical current successfully routed.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/clubs/Q", { method: "POST" });
+}
+
+// Start
+initGame();
+</script>
+
+<style>
+#pipeline-canvas {
+    border: 3px solid #ff3434;
+    border-radius: 8px;
+    background: #000;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+    cursor: pointer;
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

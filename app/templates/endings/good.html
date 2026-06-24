@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="ending-container good-ending">
+    <div class="ending-card">
+        <h1 class="ending-title glow-text-green">🏆 THE GOOD ENDING: RETURN TO REALITY</h1>
+        
+        <div class="ending-art-box">
+            <span class="laser-beam green"></span>
+            <div class="ending-emoji">🏥🌸</div>
+        </div>
+
+        <p class="ending-description">
+            You rejected the residency in the Borderland. As the neon sky shattered, you woke up in a quiet Tokyo hospital. The beep of heart monitors replaced the hum of laser grids.
+        </p>
+        <p class="ending-description">
+            Your injuries are real, and your memories of the Borderland are fading like a dream. But as you step outside into the warm sunlight, you see a familiar face. Usagi is there. You look at each other, and without words, you know. You survived together.
+        </p>
+
+        <div class="ending-stats">
+            <h3>Your Survival Profile</h3>
+            <p>• Completion Rate: <span class="green-text">100% (52/52 Cards)</span></p>
+            <p>• Final Choice: <span class="green-text">Reality</span></p>
+            <p>• Fate: <span class="green-text">Reborn in Tokyo</span></p>
+        </div>
+
+        <div class="button-row">
+            <a href="{{ url_for('main.dashboard') }}" class="btn card-btn">Return to Menu</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.ending-container {
+    max-width: 700px;
+    margin: 40px auto;
+}
+.ending-card {
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid #00ff66;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 0 30px rgba(0, 255, 102, 0.25);
+    text-align: center;
+}
+.ending-title {
+    font-size: 28px;
+    margin-bottom: 25px;
+    font-family: monospace;
+    letter-spacing: 2px;
+}
+.glow-text-green {
+    color: #00ff66;
+    text-shadow: 0 0 15px rgba(0, 255, 102, 0.6);
+}
+.ending-art-box {
+    position: relative;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px;
+}
+.ending-emoji {
+    font-size: 64px;
+    z-index: 2;
+}
+.laser-beam {
+    position: absolute;
+    width: 4px;
+    height: 100%;
+    z-index: 1;
+}
+.laser-beam.green {
+    background: #00ff66;
+    box-shadow: 0 0 15px #00ff66;
+}
+.ending-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #eee;
+    margin-bottom: 20px;
+    text-align: left;
+}
+.ending-stats {
+    background: rgba(0, 50, 0, 0.2);
+    border: 1px solid #005522;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: left;
+    margin: 30px 0;
+}
+.ending-stats h3 {
+    margin-top: 0;
+    color: #00ff66;
+    font-family: monospace;
+}
+.ending-stats p {
+    margin: 8px 0;
+    font-family: monospace;
+}
+.green-text {
+    color: #00ff66;
+    font-weight: bold;
+}
+.button-row {
+    margin-top: 30px;
+}
+</style>
+
+{% endblock %}

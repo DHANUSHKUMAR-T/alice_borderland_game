@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♠ Spades Queen – Platform Escape</h2>
+
+        <p class="game-text">
+            <b>Gravity Escape:</b> Four platform sectors span the area. Every 2.5 seconds, one sector collapses (flashing red). Move your avatar (cyan circle) to a green safe zone before it collapses. Survive for 20 seconds.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Integrity: <span id="health-val" style="color: #00ffff; font-weight: bold;">100%</span></div>
+                <div>Time Remaining: <span id="timer-val" style="color: #ff3333; font-weight: bold;">20s</span></div>
+            </div>
+
+            <canvas id="platform-canvas" width="400" height="250"></canvas>
+
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn">Initialize Platform Anchors</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='spades') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='spades') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/QS.png"
+             class="card-image glow-float"
+             alt="Spades Queen">
+    </div>
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const canvas = document.getElementById("platform-canvas");
+const ctx = canvas.getContext("2d");
+const healthVal = document.getElementById("health-val");
+const timerVal = document.getElementById("timer-val");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+let player = { x: 200, y: 125, radius: 12, speed: 6 };
+let health = 100;
+let timer = 20;
+let gameActive = false;
+let loopId = null;
+let timerInterval = null;
+let collapseInterval = null;
+
+let sectors = [
+    { id: 0, x: 0, w: 100, status: "safe" },
+    { id: 1, x: 100, w: 100, status: "safe" },
+    { id: 2, x: 200, w: 100, status: "safe" },
+    { id: 3, x: 300, w: 100, status: "safe" }
+];
+
+let unsafeSectorIndex = -1;
+let warningActive = false;
+let keys = {};
+
+window.addEventListener("keydown", e => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+    }
+    keys[e.key.toLowerCase()] = true;
+});
+
+window.addEventListener("keyup", e => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    initGame();
+};
+
+function initGame() {
+    player = { x: 200, y: 125, radius: 12, speed: 6 };
+    health = 100;
+    timer = 20;
+    gameActive = true;
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+    healthVal.textContent = "100%";
+    timerVal.textContent = "20s";
+    sectors.forEach(s => s.status = "safe");
+    unsafeSectorIndex = -1;
+    warningActive = false;
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (!gameActive) return;
+        timer--;
+        timerVal.textContent = `${timer}s`;
+
+        if (timer <= 0) {
+            winGame();
+        }
+    }, 1000);
+
+    clearInterval(collapseInterval);
+    triggerCollapseCycle();
+    collapseInterval = setInterval(triggerCollapseCycle, 2500);
+
+    if (loopId) cancelAnimationFrame(loopId);
+    gameLoop();
+}
+
+function triggerCollapseCycle() {
+    if (!gameActive) return;
+
+    // Reset previous unsafe
+    sectors.forEach(s => s.status = "safe");
+    warningActive = true;
+
+    // Choose random unsafe sector
+    unsafeSectorIndex = Math.floor(Math.random() * 4);
+    sectors[unsafeSectorIndex].status = "warning";
+
+    // Collapse after 1 second
+    setTimeout(() => {
+        if (!gameActive) return;
+        warningActive = false;
+        sectors[unsafeSectorIndex].status = "collapsed";
+
+        // Check if player is standing on the collapsed sector
+        let playerSector = Math.floor(player.x / 100);
+        if (playerSector === unsafeSectorIndex) {
+            health -= 35;
+            healthVal.textContent = `${Math.max(0, health)}%`;
+            if (health <= 0) {
+                failGame("💥 Fell into the abyss. Platform integration broken.");
+            }
+        }
+    }, 1000);
+}
+
+function update() {
+    // Move player left/right/up/down
+    if (keys["arrowleft"] || keys["a"]) player.x -= player.speed;
+    if (keys["arrowright"] || keys["d"]) player.x += player.speed;
+    if (keys["arrowup"] || keys["w"]) player.y -= player.speed;
+    if (keys["arrowdown"] || keys["s"]) player.y += player.speed;
+
+    // Boundary check player
+    if (player.x < player.radius) player.x = player.radius;
+    if (player.x > canvas.width - player.radius) player.x = canvas.width - player.radius;
+    if (player.y < player.radius) player.y = player.radius;
+    if (player.y > canvas.height - player.radius) player.y = canvas.height - player.radius;
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw platform sectors
+    sectors.forEach(s => {
+        if (s.status === "collapsed") {
+            ctx.fillStyle = "#110000"; // pitch black abyss
+        } else if (s.status === "warning") {
+            ctx.fillStyle = "rgba(255, 0, 0, 0.4)"; // flash red warning
+        } else {
+            ctx.fillStyle = "rgba(0, 255, 100, 0.15)"; // safe green platform
+        }
+        ctx.fillRect(s.x, 0, s.w, canvas.height);
+
+        // draw border lines
+        ctx.strokeStyle = s.status === "warning" ? "#ff3333" : s.status === "collapsed" ? "#550000" : "#00aa44";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(s.x, 0, s.w, canvas.height);
+    });
+
+    // Draw player
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#00ffff";
+    ctx.shadowColor = "#00ffff";
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+function gameLoop() {
+    if (!gameActive) return;
+    update();
+    draw();
+    loopId = requestAnimationFrame(gameLoop);
+}
+
+function failGame(msg) {
+    gameActive = false;
+    clearInterval(timerInterval);
+    clearInterval(collapseInterval);
+    cancelAnimationFrame(loopId);
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+    setTimeout(() => {
+        startBtn.style.display = "inline-block";
+        startBtn.textContent = "Re-align Platform Anchors";
+    }, 1500);
+}
+
+function winGame() {
+    gameActive = false;
+    clearInterval(timerInterval);
+    clearInterval(collapseInterval);
+    cancelAnimationFrame(loopId);
+    resultEl.textContent = "🏆 Safety Reached. Queen's Escape Cleared.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/spades/Q", { method: "POST" });
+}
+</script>
+
+<style>
+#platform-canvas {
+    border: 3px solid #ff3434;
+    border-radius: 8px;
+    background: #000;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

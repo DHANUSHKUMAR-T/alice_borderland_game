@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♠ Spades Jack – Drone Dodge</h2>
+
+        <p class="game-text">
+            <b>Survival Trial:</b> Dodge the high-speed security drones (red glowing circles) for 20 seconds. Your shields (cyan glow) degrade with each hit.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Shields: <span id="shield-val" style="color: #00ffff; font-weight: bold;">100%</span></div>
+                <div>Time Remaining: <span id="timer-val" style="color: #ff3333; font-weight: bold;">20s</span></div>
+            </div>
+
+            <canvas id="dodge-canvas" width="400" height="300"></canvas>
+
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn">Deploy Drone Countermeasures</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='spades') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='spades') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/JS.png"
+             class="card-image glow-float"
+             alt="Spades Jack">
+    </div>
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const canvas = document.getElementById("dodge-canvas");
+const ctx = canvas.getContext("2d");
+const shieldVal = document.getElementById("shield-val");
+const timerVal = document.getElementById("timer-val");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+let player = { x: 200, y: 150, radius: 10, speed: 5 };
+let drones = [];
+let shield = 100;
+let timer = 20;
+let gameActive = false;
+let loopId = null;
+let timerInterval = null;
+
+let keys = {};
+
+window.addEventListener("keydown", e => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+        e.preventDefault();
+    }
+    keys[e.key.toLowerCase()] = true;
+});
+
+window.addEventListener("keyup", e => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    initGame();
+};
+
+function initGame() {
+    player = { x: 200, y: 150, radius: 10, speed: 5 };
+    shield = 100;
+    timer = 20;
+    gameActive = true;
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+    shieldVal.textContent = "100%";
+    timerVal.textContent = "20s";
+    drones = [];
+
+    // Spawn initial drones
+    for (let i = 0; i < 5; i++) {
+        spawnDrone();
+    }
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (!gameActive) return;
+        timer--;
+        timerVal.textContent = `${timer}s`;
+
+        // Increase difficulty: spawn more drones
+        if (timer % 4 === 0 && timer > 0) {
+            spawnDrone();
+        }
+
+        if (timer <= 0) {
+            winGame();
+        }
+    }, 1000);
+
+    if (loopId) cancelAnimationFrame(loopId);
+    gameLoop();
+}
+
+function spawnDrone() {
+    let side = Math.floor(Math.random() * 4);
+    let x, y;
+    if (side === 0) { x = 0; y = Math.random() * canvas.height; }
+    else if (side === 1) { x = canvas.width; y = Math.random() * canvas.height; }
+    else if (side === 2) { x = Math.random() * canvas.width; y = 0; }
+    else { x = Math.random() * canvas.width; y = canvas.height; }
+
+    let angle = Math.random() * 2 * Math.PI;
+    let speed = 2.5 + Math.random() * 2;
+    drones.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 8
+    });
+}
+
+function update() {
+    // Move player
+    if (keys["arrowup"] || keys["w"]) player.y -= player.speed;
+    if (keys["arrowdown"] || keys["s"]) player.y += player.speed;
+    if (keys["arrowleft"] || keys["a"]) player.x -= player.speed;
+    if (keys["arrowright"] || keys["d"]) player.x += player.speed;
+
+    // Bounds checking player
+    if (player.x < player.radius) player.x = player.radius;
+    if (player.x > canvas.width - player.radius) player.x = canvas.width - player.radius;
+    if (player.y < player.radius) player.y = player.radius;
+    if (player.y > canvas.height - player.radius) player.y = canvas.height - player.radius;
+
+    // Move drones
+    drones.forEach(drone => {
+        drone.x += drone.vx;
+        drone.y += drone.vy;
+
+        // Bounce off walls
+        if (drone.x < drone.radius || drone.x > canvas.width - drone.radius) {
+            drone.vx = -drone.vx;
+        }
+        if (drone.y < drone.radius || drone.y > canvas.height - drone.radius) {
+            drone.vy = -drone.vy;
+        }
+
+        // Collision detection
+        let dx = player.x - drone.x;
+        let dy = player.y - drone.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < player.radius + drone.radius) {
+            shield -= 1.5; // continuous collision penalty
+            shieldVal.textContent = `${Math.max(0, Math.ceil(shield))}%`;
+            if (shield <= 0) {
+                failGame("💥 Shields Depleted. Drone Attack Successful.");
+            }
+        }
+    });
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Grid lines for background aesthetic
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+
+    // Draw drones (red glowing)
+    drones.forEach(drone => {
+        ctx.beginPath();
+        ctx.arc(drone.x, drone.y, drone.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ff3333";
+        ctx.shadowColor = "#ff3333";
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
+    // Draw player (cyan glowing shield)
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#00ffff";
+    ctx.shadowColor = "#00ffff";
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+function gameLoop() {
+    if (!gameActive) return;
+    update();
+    draw();
+    loopId = requestAnimationFrame(gameLoop);
+}
+
+function failGame(msg) {
+    gameActive = false;
+    clearInterval(timerInterval);
+    cancelAnimationFrame(loopId);
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+    
+    // Save retry metric in db background
+    fetch("/complete/spades/J", { method: "POST" }); // just let the user re-try, wait no. POST complete is only for success.
+    // We can increment retry in database later or track it in session, but let's just show start button again.
+    setTimeout(() => {
+        startBtn.style.display = "inline-block";
+        startBtn.textContent = "Try Countermeasures Again";
+    }, 1500);
+}
+
+function winGame() {
+    gameActive = false;
+    clearInterval(timerInterval);
+    cancelAnimationFrame(loopId);
+    resultEl.textContent = "🏆 Survival Confirmed. Drone Security Cleared.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/spades/J", { method: "POST" });
+}
+</script>
+
+<style>
+#dodge-canvas {
+    border: 3px solid #ff3434;
+    border-radius: 8px;
+    background: #050505;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

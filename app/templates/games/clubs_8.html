@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+<div class="game-card-display">
+
+<h2 class="menu-title">♣ 8 – Rotating Roles</h2>
+
+<p class="game-text">
+Leader rotates every few seconds.<br>
+Only the leader can move the object.
+</p>
+
+<button id="start-btn" class="btn red-btn">Start Mission</button>
+
+<div id="game-area" style="display:none;">
+
+<p id="leader-text">Leader: ---</p>
+
+<canvas id="gameCanvas" width="600" height="350"
+style="background:black;border:2px solid red;"></canvas>
+
+<p id="result"></p>
+
+<div class="button-row">
+
+<a id="next-btn"
+href="{{ url_for('main.suit_cards', suit='clubs') }}"
+class="btn card-btn"
+style="display:none;">
+Next Card →
+</a>
+
+<a href="{{ url_for('main.suit_cards', suit='clubs') }}"
+class="btn card-btn">
+Back
+</a>
+
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+    window.onload=function(){
+    
+    const startBtn=document.getElementById("start-btn");
+    const gameArea=document.getElementById("game-area");
+    const canvas=document.getElementById("gameCanvas");
+    const ctx=canvas.getContext("2d");
+    const resultEl=document.getElementById("result");
+    const nextBtn=document.getElementById("next-btn");
+    const leaderText=document.getElementById("leader-text");
+    
+    const players=["Arisu","Usagi","Kuina","Chishiya"];
+    
+    const playerName="Arisu"; // YOU ARE THIS PLAYER
+    
+    let leaderIndex=0;
+    let leaderTimer;
+    
+    let object={
+    x:40,
+    y:160,
+    size:20,
+    speed:4
+    };
+    
+    let goal={
+    x:550,
+    y:150,
+    w:40,
+    h:40
+    };
+    
+    /* More obstacles for harder level */
+    
+    let obstacles=[
+    {x:120,y:0,w:20,h:200},
+    {x:200,y:150,w:20,h:200},
+    {x:300,y:0,w:20,h:200},
+    {x:380,y:150,w:20,h:200},
+    {x:460,y:0,w:20,h:200}
+    ];
+    
+    let keys={};
+    let hits=0;
+    
+    startBtn.onclick=function(){
+    
+    startBtn.style.display="none";
+    gameArea.style.display="block";
+    
+    leaderText.innerHTML=
+    "Leader: "+players[leaderIndex]+"<br>Your Role: <b>"+playerName+"</b>";
+    
+    startGame();
+    
+    }
+    
+    function startGame(){
+    
+    leaderTimer=setInterval(rotateLeader,5000);
+    
+    setInterval(update,20);
+    
+    }
+    
+    /* Rotate Leader */
+    
+    function rotateLeader(){
+    
+    leaderIndex=(leaderIndex+1)%players.length;
+    
+    leaderText.innerHTML=
+    "Leader: "+players[leaderIndex]+"<br>Your Role: <b>"+playerName+"</b>";
+    
+    }
+    
+    /* Keyboard controls */
+    
+    document.addEventListener("keydown",e=>{
+    
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)){
+    e.preventDefault();
+    }
+    
+    keys[e.key]=true;
+    
+    });
+    
+    document.addEventListener("keyup",e=>{
+    keys[e.key]=false;
+    });
+    
+    /* Game Loop */
+    
+    function update(){
+    
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    moveObject();
+    drawGoal();
+    drawObstacles();
+    drawObject();
+    
+    checkCollision();
+    checkWin();
+    
+    }
+    
+    /* Movement only if you are leader */
+    
+    function moveObject(){
+    
+    if(players[leaderIndex] !== playerName) return;
+    
+    if(keys["ArrowUp"]) object.y-=object.speed;
+    if(keys["ArrowDown"]) object.y+=object.speed;
+    if(keys["ArrowLeft"]) object.x-=object.speed;
+    if(keys["ArrowRight"]) object.x+=object.speed;
+    
+    object.x=Math.max(0,Math.min(canvas.width-object.size,object.x));
+    object.y=Math.max(0,Math.min(canvas.height-object.size,object.y));
+    
+    }
+    
+    /* Draw object */
+    
+    function drawObject(){
+    
+    ctx.fillStyle="cyan";
+    ctx.fillRect(object.x,object.y,object.size,object.size);
+    
+    }
+    
+    /* Draw goal */
+    
+    function drawGoal(){
+    
+    ctx.fillStyle="green";
+    ctx.fillRect(goal.x,goal.y,goal.w,goal.h);
+    
+    }
+    
+    /* Draw obstacles */
+    
+    function drawObstacles(){
+    
+    ctx.fillStyle="white";
+    
+    obstacles.forEach(o=>{
+    ctx.fillRect(o.x,o.y,o.w,o.h);
+    });
+    
+    }
+    
+    /* Collision detection */
+    
+    function checkCollision(){
+    
+    obstacles.forEach(o=>{
+    
+    if(
+    object.x < o.x + o.w &&
+    object.x + object.size > o.x &&
+    object.y < o.y + o.h &&
+    object.y + object.size > o.y
+    ){
+    
+    hits++;
+    
+    object.x=40;
+    object.y=160;
+    
+    if(hits>=4){
+    failGame();
+    }
+    
+    }
+    
+    });
+    
+    }
+    
+    /* Win condition */
+    
+    function checkWin(){
+    
+    if(
+    object.x < goal.x + goal.w &&
+    object.x + object.size > goal.x &&
+    object.y < goal.y + goal.h &&
+    object.y + object.size > goal.y
+    ){
+    
+    clearInterval(leaderTimer);
+    
+    resultEl.textContent="🎉 Object delivered successfully.";
+    resultEl.style.color="#00ff66";
+    
+    nextBtn.style.display="inline-block";
+    
+    fetch("/complete/clubs/8",{method:"POST"});
+    
+    }
+    
+    }
+    
+    /* Fail condition */
+    
+    function failGame(){
+    
+    resultEl.textContent="💀 Too many collisions.";
+    resultEl.style.color="#ff3333";
+    
+    setTimeout(()=>location.reload(),2000);
+    
+    }
+    
+    }
+    
+    </script>
+
+{% endblock %}

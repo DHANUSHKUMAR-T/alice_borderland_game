@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂦 Spades 6 – Moving Walls</h2>
+
+        <p class="game-text">
+            Reach the right side without touching moving walls.<br>
+            Use Arrow Keys to move.
+        </p>
+
+        <button id="start-btn" class="btn red-btn">Start Game</button>
+
+        <div id="game-area" style="display:none;">
+            <p id="timer" class="timer-text">Time Left: 30s</p>
+
+            <canvas id="gameCanvas" width="600" height="300"
+                    style="background:black; border:2px solid red;"></canvas>
+
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='spades') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='spades') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.onload = function() {
+
+    const startBtn = document.getElementById("start-btn");
+    const gameArea = document.getElementById("game-area");
+    const canvas = document.getElementById("gameCanvas");
+    const timerEl = document.getElementById("timer");
+    const resultEl = document.getElementById("result");
+    const nextBtn = document.getElementById("next-btn");
+
+    const ctx = canvas.getContext("2d");
+
+    let player = { x: 20, y: 130, size: 20, speed: 4 };
+    let walls = [];
+    let keys = {};
+    let gameInterval = null;
+    let timerInterval = null;
+    let timer = 30;
+    let gameRunning = false;
+
+    /* START BUTTON */
+    startBtn.onclick = function() {
+        startBtn.style.display = "none";
+        gameArea.style.display = "block";
+        startGame();
+    };
+
+    function startGame() {
+        gameRunning = true;
+        timer = 30;
+        resultEl.textContent = "";
+        resultEl.style.color = "white";
+        nextBtn.style.display = "none";
+
+        player.x = 20;
+        player.y = 130;
+
+        generateWalls();
+        startTimer();
+
+        clearInterval(gameInterval);
+        gameInterval = setInterval(update, 20);
+    }
+
+    function generateWalls() {
+        walls = [];
+        for (let i = 100; i < 550; i += 120) {
+            walls.push({
+                x: i,
+                y: Math.random() * 200,
+                width: 20,
+                height: 100,
+                direction: 1
+            });
+        }
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(function() {
+            timer--;
+            timerEl.textContent = "Time Left: " + timer + "s";
+
+            if (timer <= 0) {
+                failGame("⏳ Time's up!");
+            }
+        }, 1000);
+    }
+
+    document.addEventListener("keydown", function(e) {
+
+        if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+            e.preventDefault();   // 🚫 stop page scrolling
+        }
+    
+        keys[e.key] = true;
+    });
+    
+    document.addEventListener("keyup", function(e) {
+        keys[e.key] = false;
+    });
+
+    function update() {
+        if (!gameRunning) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        movePlayer();
+        moveWalls();
+        drawPlayer();
+        drawWalls();
+        checkCollision();
+        checkWin();
+    }
+
+    function movePlayer() {
+        if (keys["ArrowUp"]) player.y -= player.speed;
+        if (keys["ArrowDown"]) player.y += player.speed;
+        if (keys["ArrowLeft"]) player.x -= player.speed;
+        if (keys["ArrowRight"]) player.x += player.speed;
+
+        player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
+        player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
+    }
+
+    function moveWalls() {
+        walls.forEach(function(w) {
+            w.y += 2 * w.direction;
+
+            if (w.y <= 0 || w.y + w.height >= canvas.height) {
+                w.direction *= -1;
+            }
+        });
+    }
+
+    function drawPlayer() {
+        ctx.fillStyle = "red";
+        ctx.fillRect(player.x, player.y, player.size, player.size);
+    }
+
+    function drawWalls() {
+        ctx.fillStyle = "white";
+        walls.forEach(function(w) {
+            ctx.fillRect(w.x, w.y, w.width, w.height);
+        });
+    }
+
+    function checkCollision() {
+        for (let i = 0; i < walls.length; i++) {
+            let w = walls[i];
+
+            if (
+                player.x < w.x + w.width &&
+                player.x + player.size > w.x &&
+                player.y < w.y + w.height &&
+                player.y + player.size > w.y
+            ) {
+                failGame("💀 Crushed by wall!");
+                break;
+            }
+        }
+    }
+
+    function checkWin() {
+        if (player.x >= canvas.width - player.size) {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+
+            resultEl.textContent = "🎉 You Survived!";
+            resultEl.style.color = "#00ff66";
+            nextBtn.style.display = "inline-block";
+
+            fetch("/complete/spades/6", { method: "POST" });
+        }
+    }
+
+    function failGame(msg) {
+        gameRunning = false;
+        clearInterval(gameInterval);
+        clearInterval(timerInterval);
+
+        resultEl.textContent = msg;
+        resultEl.style.color = "#ff3333";
+
+        setTimeout(function() {
+            startGame();
+        }, 2000);
+    }
+
+};
+</script>
+
+{% endblock %}

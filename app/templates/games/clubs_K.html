@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♣ Clubs King – Osmosis Territory</h2>
+
+        <p class="game-text">
+            <b>Tactical Osmosis:</b> You and the King of Clubs battle for territory on a 3x3 grid. Each turn, you receive <b>12 points</b> to distribute. Click a node to allocate points to it. The King will do the same. Control more nodes than the King after <b>5 turns</b> to clear.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Points Left: <span id="points-val" style="color: #00ffff; font-weight: bold;">12</span></div>
+                <div>Turn: <span id="turn-val" style="color: #ffaa00; font-weight: bold;">1 / 5</span></div>
+            </div>
+
+            <div class="territory-display">
+                <div>Your Nodes: <span id="player-nodes-count" style="color:#00ffff;">1</span></div>
+                <div>King's Nodes: <span id="king-nodes-count" style="color:#ff3333;">1</span></div>
+            </div>
+
+            <canvas id="osmosis-canvas" width="360" height="360"></canvas>
+
+            <p id="feedback" class="feedback-text">Allocate your points and click Resolve.</p>
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="resolve-btn" class="btn red-btn">Resolve Turn</button>
+                <button id="start-btn" class="btn red-btn" style="display:none;" onclick="initGame()">Restart Battle</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='clubs') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='clubs') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/KC.png"
+             class="card-image glow-float"
+             alt="Clubs King">
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("osmosis-canvas");
+const ctx = canvas.getContext("2d");
+const pointsValEl = document.getElementById("points-val");
+const turnValEl = document.getElementById("turn-val");
+const playerNodesEl = document.getElementById("player-nodes-count");
+const kingNodesEl = document.getElementById("king-nodes-count");
+const resolveBtn = document.getElementById("resolve-btn");
+const startBtn = document.getElementById("start-btn");
+const feedbackEl = document.getElementById("feedback");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+const size = 3;
+const nodeRadius = 35;
+let turn = 1;
+const maxTurns = 5;
+let playerPoints = 12;
+let gameActive = true;
+
+// Grid Nodes: 3x3
+let nodes = [];
+
+function initGame() {
+    turn = 1;
+    playerPoints = 12;
+    gameActive = true;
+    resultEl.textContent = "";
+    feedbackEl.textContent = "Allocate your 12 points on nodes, then click Resolve.";
+    feedbackEl.style.color = "white";
+    nextBtn.style.display = "none";
+    startBtn.style.display = "none";
+    resolveBtn.style.display = "inline-block";
+    pointsValEl.textContent = "12";
+    turnValEl.textContent = "1 / 5";
+
+    // Initialize 9 nodes
+    nodes = [];
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            let owner = "neutral";
+            let val = 0;
+            if (r === 0 && c === 0) { owner = "player"; val = 5; } // starting player
+            if (r === 2 && c === 2) { owner = "king"; val = 5; }   // starting king
+
+            nodes.push({
+                r: r,
+                c: c,
+                x: (c + 0.5) * (canvas.width / size),
+                y: (r + 0.5) * (canvas.height / size),
+                owner: owner,
+                val: val,
+                allocatedPlayer: 0,
+                allocatedKing: 0
+            });
+        }
+    }
+
+    updateStats();
+    draw();
+}
+
+function updateStats() {
+    let pCount = nodes.filter(n => n.owner === "player").length;
+    let kCount = nodes.filter(n => n.owner === "king").length;
+    playerNodesEl.textContent = pCount;
+    kingNodesEl.textContent = kCount;
+    pointsValEl.textContent = playerPoints;
+}
+
+canvas.onclick = e => {
+    if (!gameActive || playerPoints <= 0) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Find clicked node
+    const node = nodes.find(n => {
+        let dx = n.x - x;
+        let dy = n.y - y;
+        return Math.sqrt(dx * dx + dy * dy) < nodeRadius;
+    });
+
+    if (node) {
+        // Can allocate points to own nodes, or adjacent nodes to attack/capture
+        let isOwn = node.owner === "player";
+        let isAdjacent = false;
+
+        // Check adjacency to any player node
+        nodes.forEach(pNode => {
+            if (pNode.owner === "player") {
+                if (Math.abs(pNode.r - node.r) + Math.abs(pNode.c - node.c) <= 1) {
+                    isAdjacent = true;
+                }
+            }
+        });
+
+        if (isOwn || isAdjacent) {
+            node.allocatedPlayer++;
+            playerPoints--;
+            updateStats();
+            draw();
+        } else {
+            feedbackEl.textContent = "⚠️ Can only allocate to own or adjacent nodes!";
+            feedbackEl.style.color = "#ffaa00";
+            setTimeout(() => {
+                if (gameActive) {
+                    feedbackEl.textContent = "Allocate your points and click Resolve.";
+                    feedbackEl.style.color = "white";
+                }
+            }, 2000);
+        }
+    }
+};
+
+resolveBtn.onclick = () => {
+    if (!gameActive) return;
+    if (playerPoints > 0) {
+        feedbackEl.textContent = `⚠️ You must allocate all 12 points before resolving!`;
+        feedbackEl.style.color = "#ffaa00";
+        return;
+    }
+
+    // King Smart allocation (12 points)
+    // Target neutral adjacent nodes first, then attack players
+    let kingAllocLeft = 12;
+    while (kingAllocLeft > 0) {
+        // Find nodes adjacent to King's nodes
+        let candidates = nodes.filter(n => {
+            let adj = false;
+            nodes.forEach(kNode => {
+                if (kNode.owner === "king") {
+                    if (Math.abs(kNode.r - n.r) + Math.abs(kNode.c - n.c) <= 1) adj = true;
+                }
+            });
+            return adj;
+        });
+
+        if (candidates.length > 0) {
+            // Pick a node randomly from candidates and add point
+            let targetNode = candidates[Math.floor(Math.random() * candidates.length)];
+            targetNode.allocatedKing++;
+            kingAllocLeft--;
+        } else {
+            // fallback (should not happen since King starts with a node)
+            nodes[8].allocatedKing += kingAllocLeft;
+            kingAllocLeft = 0;
+        }
+    }
+
+    // Resolve battle on all nodes
+    nodes.forEach(node => {
+        let pTotal = (node.owner === "player" ? node.val : 0) + node.allocatedPlayer;
+        let kTotal = (node.owner === "king" ? node.val : 0) + node.allocatedKing;
+
+        if (pTotal > kTotal) {
+            node.owner = "player";
+            node.val = pTotal - kTotal;
+        } else if (kTotal > pTotal) {
+            node.owner = "king";
+            node.val = kTotal - pTotal;
+        } else {
+            // tie: retain previous ownership but reduce strength to 1
+            node.val = Math.max(1, node.val - 1);
+        }
+
+        // Reset turn allocations
+        node.allocatedPlayer = 0;
+        node.allocatedKing = 0;
+    });
+
+    if (turn >= maxTurns) {
+        endGame();
+    } else {
+        turn++;
+        playerPoints = 12;
+        turnValEl.textContent = `${turn} / ${maxTurns}`;
+        feedbackEl.textContent = "Turn Resolved! Allocate points for next turn.";
+        feedbackEl.style.color = "#00ff66";
+        updateStats();
+        draw();
+    }
+};
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw connection lines between adjacent grid nodes
+    ctx.strokeStyle = "#222";
+    ctx.lineWidth = 4;
+    nodes.forEach(n1 => {
+        nodes.forEach(n2 => {
+            if (n1 !== n2 && Math.abs(n1.r - n2.r) + Math.abs(n1.c - n2.c) === 1) {
+                ctx.beginPath();
+                ctx.moveTo(n1.x, n1.y);
+                ctx.lineTo(n2.x, n2.y);
+                ctx.stroke();
+            }
+        });
+    });
+
+    // Draw Nodes
+    nodes.forEach(node => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, nodeRadius, 0, 2 * Math.PI);
+        if (node.owner === "player") {
+            ctx.fillStyle = "#00ffff";
+            ctx.shadowColor = "#00ffff";
+            ctx.shadowBlur = 10;
+        } else if (node.owner === "king") {
+            ctx.fillStyle = "#ff3333";
+            ctx.shadowColor = "#ff3333";
+            ctx.shadowBlur = 10;
+        } else {
+            ctx.fillStyle = "#222";
+            ctx.shadowBlur = 0;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = "#444";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Node strength text
+        ctx.fillStyle = node.owner === "neutral" ? "#666" : "black";
+        ctx.font = "bold 16px monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(node.val, node.x, node.y);
+
+        // Allocated indicators
+        if (node.allocatedPlayer > 0) {
+            ctx.fillStyle = "#fff";
+            ctx.font = "12px monospace";
+            ctx.fillText(`+${node.allocatedPlayer}`, node.x, node.y - 20);
+        }
+    });
+}
+
+function endGame() {
+    gameActive = false;
+    resolveBtn.style.display = "none";
+
+    let pCount = nodes.filter(n => n.owner === "player").length;
+    let kCount = nodes.filter(n => n.owner === "king").length;
+
+    if (pCount > kCount) {
+        resultEl.textContent = `🏆 Victory! You captured ${pCount} nodes and defeated the King of Clubs.`;
+        resultEl.style.color = "#00ff66";
+        nextBtn.style.display = "inline-block";
+
+        fetch("/complete/clubs/K", { method: "POST" });
+    } else {
+        resultEl.textContent = `💥 Defeat. The King controls the grid. Territory Osmosis failed.`;
+        resultEl.style.color = "#ff3333";
+        startBtn.style.display = "inline-block";
+    }
+}
+
+// Start
+initGame();
+</script>
+
+<style>
+#osmosis-canvas {
+    border: 3px solid #ff3434;
+    border-radius: 8px;
+    background: #050505;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+    cursor: pointer;
+}
+.territory-display {
+    display: flex;
+    justify-content: space-around;
+    font-size: 15px;
+    margin: 8px 0;
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

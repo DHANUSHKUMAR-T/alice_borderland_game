@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♥ Hearts Jack – Liar's Trial</h2>
+
+        <p class="game-text">
+            <b>Psychological Deduction:</b> You must interrogate four suspects. Exactly <b>one suspect is telling the truth</b>, and the others are lying. Identify the <b>Traitor</b> (who is always a liar). You must clear 3 consecutive trials.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Heart Rate: <span id="heart-rate" style="color: #ff3333; font-weight: bold;">75 bpm</span></div>
+                <div>Trial: <span id="trial-val" style="color: #ffaa00; font-weight: bold;">1 / 3</span></div>
+            </div>
+
+            <!-- Interrogation Panel -->
+            <div id="trial-container" class="trial-panel">
+                <p class="trial-intro">Interrogating suspects...</p>
+                <div id="testimonies" class="testimonies-box"></div>
+                <div id="choices" class="suspect-choices"></div>
+            </div>
+
+            <p id="feedback" class="feedback-text"></p>
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn">Begin Interrogation</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='hearts') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='hearts') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/JH.png"
+             class="card-image glow-float"
+             alt="Hearts Jack">
+    </div>
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const testimoniesEl = document.getElementById("testimonies");
+const choicesEl = document.getElementById("choices");
+const heartRateEl = document.getElementById("heart-rate");
+const trialValEl = document.getElementById("trial-val");
+const feedbackEl = document.getElementById("feedback");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+let trial = 1;
+const maxTrials = 3;
+let heartRate = 75;
+let gameActive = false;
+let correctSuspect = "";
+
+const puzzles = [
+    {
+        testimonies: [
+            { name: "Aya", text: "Bando is the traitor." },
+            { name: "Bando", text: "Chishiya is the traitor." },
+            { name: "Chishiya", text: "I am not the traitor." },
+            { name: "Daito", text: "Bando is lying when they say Chishiya is the traitor." }
+        ],
+        correct: "Chishiya",
+        explanation: "Bando and Daito make contradictory statements, so one of them must be telling the truth. Since only one person tells the truth, Aya and Chishiya must be lying. Since Chishiya lies and says 'I am not the traitor', Chishiya is the traitor."
+    },
+    {
+        testimonies: [
+            { name: "Aya", text: "Chishiya is telling the truth." },
+            { name: "Bando", text: "I am the traitor." },
+            { name: "Chishiya", text: "Daito is the traitor." },
+            { name: "Daito", text: "Chishiya is lying." }
+        ],
+        correct: "Aya",
+        explanation: "Chishiya and Daito contradict, so one is telling the truth. Therefore Aya and Bando are lying. Bando's lie ('I am the traitor') means Bando is innocent. Aya's lie ('Chishiya tells the truth') means Chishiya is lying, so Daito is telling the truth. Since Aya is lying and Aya is the only remaining suspect who could be the traitor, Aya is the traitor."
+    },
+    {
+        testimonies: [
+            { name: "Aya", text: "Daito is innocent." },
+            { name: "Bando", text: "Aya is telling the truth." },
+            { name: "Chishiya", text: "Bando is the traitor." },
+            { name: "Daito", text: "Chishiya is lying." }
+        ],
+        correct: "Daito",
+        explanation: "Bando states that Aya is telling the truth. If Aya were telling the truth, Bando would also be telling the truth, which contradicts the rule. Thus, Aya and Bando are lying. Since Aya lies when saying 'Daito is innocent', Daito must be the traitor."
+    }
+];
+
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    initGame();
+};
+
+function initGame() {
+    trial = 1;
+    heartRate = 75;
+    gameActive = true;
+    resultEl.textContent = "";
+    feedbackEl.textContent = "";
+    nextBtn.style.display = "none";
+    heartRateEl.textContent = "75 bpm";
+    heartRateEl.style.color = "#ff3333";
+
+    loadTrial();
+}
+
+function loadTrial() {
+    feedbackEl.textContent = "";
+    testimoniesEl.innerHTML = "";
+    choicesEl.innerHTML = "";
+    trialValEl.textContent = `${trial} / ${maxTrials}`;
+
+    let puzzle = puzzles[trial - 1];
+    correctSuspect = puzzle.correct;
+
+    puzzle.testimonies.forEach(t => {
+        let div = document.createElement("div");
+        div.className = "testimony-line";
+        div.innerHTML = `🗣️ <b>${t.name}</b>: "${t.text}"`;
+        testimoniesEl.appendChild(div);
+
+        // choice button
+        let btn = document.createElement("button");
+        btn.className = "suspect-btn";
+        btn.textContent = t.name;
+        btn.onclick = () => selectSuspect(t.name);
+        choicesEl.appendChild(btn);
+    });
+}
+
+function selectSuspect(name) {
+    if (!gameActive) return;
+
+    if (name === correctSuspect) {
+        feedbackEl.textContent = `✔️ Correct! You identified the traitor. ${puzzles[trial-1].explanation}`;
+        feedbackEl.style.color = "#00ff66";
+        heartRate = Math.max(60, heartRate - 10);
+        heartRateEl.textContent = `${heartRate} bpm`;
+
+        if (trial < maxTrials) {
+            trial++;
+            setTimeout(loadTrial, 4000);
+        } else {
+            winGame();
+        }
+    } else {
+        heartRate += 35;
+        heartRateEl.textContent = `${heartRate} bpm`;
+        heartRateEl.style.color = "#ff0000";
+        feedbackEl.textContent = "❌ Wrong! The pressure increases. The traitor remains hidden.";
+        feedbackEl.style.color = "#ff4444";
+
+        if (heartRate >= 180) {
+            failGame("💥 Cardiac Arrest! You cracked under psychological pressure.");
+        }
+    }
+}
+
+function failGame(msg) {
+    gameActive = false;
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+    setTimeout(() => {
+        startBtn.style.display = "inline-block";
+        startBtn.textContent = "Re-enter Trial Room";
+    }, 2000);
+}
+
+function winGame() {
+    gameActive = false;
+    resultEl.textContent = "🏆 Clear! You saw through all the lies and exposed the traitor.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/hearts/J", { method: "POST" });
+}
+</script>
+
+<style>
+.trial-panel {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #ff3333;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+}
+.trial-intro {
+    font-size: 15px;
+    color: #ffaaaa;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.testimonies-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.testimony-line {
+    font-size: 16px;
+    color: #ffe6e6;
+    padding: 10px;
+    background: rgba(255, 0, 0, 0.05);
+    border-left: 3px solid #ff3333;
+}
+.suspect-choices {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.suspect-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    background: #111;
+    color: #ff3333;
+    border: 2px solid #ff3333;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+.suspect-btn:hover {
+    background: #ff3333;
+    color: black;
+    transform: scale(1.05);
+}
+.feedback-text {
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 15px 0;
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

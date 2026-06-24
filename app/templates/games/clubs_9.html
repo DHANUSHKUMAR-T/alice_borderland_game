@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+
+    <div class="game-card-display">
+        <h2 class="menu-title">♣ Clubs 9 – Relay Maze</h2>
+
+        <p class="game-text">
+            <b>Relay Maze:</b> Navigate the maze and activate all 3 relay terminals (green circles) in sequence (1 → 2 → 3) before the timer runs out to unlock the exit (red square).
+        </p>
+
+        <div class="controls-info">
+            🎮 Use <b>Arrow Keys</b> or <b>WASD</b> to move your drone (cyan circle).
+        </div>
+
+        <button id="start-btn" class="btn red-btn">Start Drone Connection</button>
+
+        <div id="game-area" style="display:none;">
+            <div class="timer-box">
+                <span id="timer-label">Time Remaining:</span>
+                <span id="timer-val" class="timer-text">30s</span>
+            </div>
+            <div class="progress-box">
+                Terminals Activated: <span id="progress-val">0 / 3</span>
+            </div>
+
+            <canvas id="maze-canvas" width="400" height="400"></canvas>
+
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='clubs') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.suit_cards', suit='clubs') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/9C.png"
+             class="card-image glow-float"
+             alt="Clubs 9">
+    </div>
+
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const gameArea = document.getElementById("game-area");
+const canvas = document.getElementById("maze-canvas");
+const ctx = canvas.getContext("2d");
+const timerVal = document.getElementById("timer-val");
+const progressVal = document.getElementById("progress-val");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+let player = { x: 1, y: 1 };
+let terminals = [
+    { x: 8, y: 1, active: false, index: 1 },
+    { x: 1, y: 8, active: false, index: 2 },
+    { x: 8, y: 8, active: false, index: 3 }
+];
+let exit = { x: 9, y: 9, unlocked: false };
+
+let timer = 35;
+let timerInterval = null;
+let gameActive = false;
+
+// 10x10 maze grid (1 = wall, 0 = path)
+const maze = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 1, 1, 1, 1, 1],
+    [1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1, 1, 1, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1]  // exit at bottom right path
+];
+
+const cellSize = canvas.width / maze.length;
+
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    gameArea.style.display = "block";
+    initGame();
+};
+
+function initGame() {
+    player = { x: 1, y: 1 };
+    terminals.forEach(t => t.active = false);
+    exit.unlocked = false;
+    timer = 35;
+    gameActive = true;
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+    progressVal.textContent = "0 / 3";
+    progressVal.style.color = "white";
+
+    clearInterval(timerInterval);
+    timerVal.textContent = `${timer}s`;
+    timerInterval = setInterval(() => {
+        if (!gameActive) return;
+        timer--;
+        timerVal.textContent = `${timer}s`;
+        if (timer <= 10) {
+            timerVal.style.color = "#ff3333";
+        } else {
+            timerVal.style.color = "#00ff66";
+        }
+
+        if (timer <= 0) {
+            clearInterval(timerInterval);
+            failGame("⏳ Time Limit Reached. Connection Lost.");
+        }
+    }, 1000);
+
+    draw();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw maze
+    for (let r = 0; r < maze.length; r++) {
+        for (let c = 0; c < maze[r].length; c++) {
+            if (maze[r][c] === 1) {
+                // Glowy wall
+                ctx.fillStyle = "#1e1e24";
+                ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+                ctx.strokeStyle = "#441111";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            } else {
+                ctx.fillStyle = "#0a0a0c";
+                ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            }
+        }
+    }
+
+    // Draw relay path cues between terminals if active
+    ctx.strokeStyle = "rgba(0, 255, 102, 0.15)";
+    ctx.lineWidth = 4;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(1.5 * cellSize, 1.5 * cellSize);
+    ctx.lineTo(8.5 * cellSize, 1.5 * cellSize);
+    ctx.lineTo(1.5 * cellSize, 8.5 * cellSize);
+    ctx.lineTo(8.5 * cellSize, 8.5 * cellSize);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw terminals
+    terminals.forEach(t => {
+        ctx.beginPath();
+        ctx.arc((t.x + 0.5) * cellSize, (t.y + 0.5) * cellSize, cellSize * 0.3, 0, 2 * Math.PI);
+        if (t.active) {
+            ctx.fillStyle = "#00ff66";
+            ctx.shadowColor = "#00ff66";
+            ctx.shadowBlur = 10;
+        } else {
+            ctx.fillStyle = "#ffaa00";
+            ctx.shadowColor = "#ffaa00";
+            ctx.shadowBlur = 5;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Label number
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 12px monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(t.index, (t.x + 0.5) * cellSize, (t.y + 0.5) * cellSize);
+    });
+
+    // Draw exit
+    ctx.fillStyle = exit.unlocked ? "#00ff66" : "#ff3333";
+    ctx.shadowColor = exit.unlocked ? "#00ff66" : "#ff3333";
+    ctx.shadowBlur = exit.unlocked ? 15 : 5;
+    ctx.fillRect(exit.x * cellSize + 4, exit.y * cellSize + 4, cellSize - 8, cellSize - 8);
+    ctx.shadowBlur = 0;
+
+    // Draw player
+    ctx.beginPath();
+    ctx.arc((player.x + 0.5) * cellSize, (player.y + 0.5) * cellSize, cellSize * 0.35, 0, 2 * Math.PI);
+    ctx.fillStyle = "#00ffff";
+    ctx.shadowColor = "#00ffff";
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+window.addEventListener("keydown", e => {
+    if (!gameActive) return;
+    let nextX = player.x;
+    let nextY = player.y;
+
+    if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") nextY--;
+    else if (e.key === "ArrowDown" || e.key.toLowerCase() === "s") nextY++;
+    else if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") nextX--;
+    else if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") nextX++;
+    else return;
+
+    e.preventDefault();
+
+    // Collision check
+    if (nextX >= 0 && nextX < maze[0].length && nextY >= 0 && nextY < maze.length) {
+        if (maze[nextY][nextX] === 0) {
+            player.x = nextX;
+            player.y = nextY;
+            checkCollisions();
+            draw();
+        }
+    }
+});
+
+function checkCollisions() {
+    // Terminal check
+    terminals.forEach(t => {
+        if (player.x === t.x && player.y === t.y) {
+            // Check order
+            let prevActive = true;
+            for (let i = 0; i < terminals.length; i++) {
+                if (terminals[i].index < t.index && !terminals[i].active) {
+                    prevActive = false;
+                }
+            }
+
+            if (prevActive && !t.active) {
+                t.active = true;
+                let activeCount = terminals.filter(x => x.active).length;
+                progressVal.textContent = `${activeCount} / 3`;
+                if (activeCount === 3) {
+                    exit.unlocked = true;
+                    progressVal.style.color = "#00ff66";
+                }
+            } else if (!prevActive && !t.active) {
+                // Wrong sequence
+                failGame("❌ Invalid terminal connection sequence. Drone overloaded.");
+            }
+        }
+    });
+
+    // Exit check
+    if (player.x === exit.x && player.y === exit.y) {
+        if (exit.unlocked) {
+            winGame();
+        } else {
+            failGame("🔒 Exit locked. Terminals must be synchronized first.");
+        }
+    }
+}
+
+function failGame(msg) {
+    gameActive = false;
+    clearInterval(timerInterval);
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+    setTimeout(initGame, 2000);
+}
+
+function winGame() {
+    gameActive = false;
+    clearInterval(timerInterval);
+    resultEl.textContent = "🎉 Relay Synchronization Complete! Maze Solved.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/clubs/9", { method: "POST" });
+}
+</script>
+
+<style>
+#maze-canvas {
+    border: 3px solid #ff3434;
+    border-radius: 8px;
+    background: #000;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+
+.controls-info {
+    font-size: 14px;
+    color: #ffcccc;
+    margin: 10px 0;
+}
+
+.timer-box, .progress-box {
+    font-size: 20px;
+    margin: 8px 0;
+}
+
+.timer-text {
+    font-weight: bold;
+    color: #00ff66;
+}
+
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

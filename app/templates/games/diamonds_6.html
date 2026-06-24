@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+<div class="game-card-display">
+
+<h2 class="menu-title">♦ 6 – False Majority</h2>
+
+<p class="game-text">
+The majority answer is always wrong.<br>
+Find the manipulation pattern.
+</p>
+
+<button id="start-btn" class="btn red-btn">Start Puzzle</button>
+
+<div id="game-area" style="display:none;">
+
+<p id="round-text">Round 1 / 4</p>
+
+<p id="question"></p>
+
+<div id="votes"></div>
+
+<div id="choices"></div>
+
+<p id="result"></p>
+
+<div class="button-row">
+
+<a id="next-btn"
+href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+class="btn card-btn"
+style="display:none;">
+Next Card →
+</a>
+
+<a href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+class="btn card-btn">
+Back
+</a>
+
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+window.onload=function(){
+
+const startBtn=document.getElementById("start-btn");
+const gameArea=document.getElementById("game-area");
+const questionEl=document.getElementById("question");
+const votesEl=document.getElementById("votes");
+const choicesEl=document.getElementById("choices");
+const resultEl=document.getElementById("result");
+const roundText=document.getElementById("round-text");
+const nextBtn=document.getElementById("next-btn");
+
+let round=0;
+const maxRounds=4;
+
+let currentOptions=[];
+let currentMajority="";
+
+const questions = [
+
+{q:"Which number is prime?",options:["9","11","15"]},
+{q:"Which shape has 4 sides?",options:["Triangle","Square","Circle"]},
+{q:"Which is a programming language?",options:["Python","HTML","CPU"]},
+{q:"Which planet is closest to the sun?",options:["Earth","Mercury","Mars"]},
+{q:"Which animal is a mammal?",options:["Shark","Whale","Octopus"]},
+{q:"Which is the largest continent?",options:["Europe","Asia","Australia"]},
+{q:"Which number is divisible by 3?",options:["10","12","14"]},
+{q:"Which is a metal?",options:["Gold","Plastic","Glass"]},
+{q:"Which device stores data?",options:["Hard Drive","Monitor","Keyboard"]},
+{q:"Which of these is a fruit?",options:["Carrot","Apple","Potato"]},
+{q:"Which direction does the sun rise?",options:["North","East","West"]},
+{q:"Which gas do humans breathe to survive?",options:["Oxygen","Carbon","Nitrogen"]},
+{q:"Which animal can fly?",options:["Penguin","Eagle","Ostrich"]},
+{q:"Which is a web browser?",options:["Chrome","Windows","Intel"]},
+{q:"Which of these is an ocean?",options:["Atlantic","Sahara","Amazon"]}
+
+];
+
+startBtn.onclick=function(){
+
+startBtn.style.display="none";
+gameArea.style.display="block";
+
+nextRound();
+
+}
+
+function nextRound(){
+
+if(round>=maxRounds){
+winGame();
+return;
+}
+
+round++;
+
+roundText.textContent="Round "+round+" / "+maxRounds;
+
+let q=questions[Math.floor(Math.random()*questions.length)];
+
+questionEl.textContent=q.q;
+
+currentOptions=q.options;
+
+generateVotes(q.options);
+
+renderChoices(q.options);
+
+}
+
+function generateVotes(options){
+
+votesEl.innerHTML="<b>Other Players' Votes:</b><br>";
+
+let majorityIndex=Math.floor(Math.random()*options.length);
+
+currentMajority=options[majorityIndex];
+
+options.forEach((opt,i)=>{
+
+let voteCount=(i===majorityIndex)
+? Math.floor(Math.random()*3)+3
+: Math.floor(Math.random()*2)+1;
+
+votesEl.innerHTML+=opt+" → "+voteCount+" votes<br>";
+
+});
+
+}
+
+function renderChoices(options){
+
+choicesEl.innerHTML="";
+
+options.forEach(opt=>{
+
+choicesEl.innerHTML+=`
+<button class="option-btn" onclick="choose('${opt}')">
+${opt}
+</button>
+`;
+
+});
+
+}
+
+window.choose=function(choice){
+
+if(choice===currentMajority){
+
+// ❌ WRONG → retry same question
+
+resultEl.textContent="❌ You followed the majority. Try again.";
+resultEl.style.color="#ff3333";
+
+setTimeout(()=>{
+resultEl.textContent="";
+},1500);
+
+}
+
+else{
+
+// ✅ CORRECT → next round
+
+resultEl.textContent="✔ You rejected the false majority.";
+resultEl.style.color="#00ff66";
+
+setTimeout(()=>{
+resultEl.textContent="";
+nextRound();
+},1500);
+
+}
+
+}
+
+function winGame(){
+
+resultEl.innerHTML=
+"🎉 You detected the manipulation pattern.<br><b>The majority was always wrong.</b>";
+
+resultEl.style.color="#00ff66";
+
+nextBtn.style.display="inline-block";
+
+fetch("/complete/diamonds/6",{method:"POST"});
+
+}
+
+}
+
+</script>
+
+<style>
+
+.option-btn{
+margin:10px;
+padding:12px 20px;
+border:2px solid red;
+background:#111;
+color:white;
+cursor:pointer;
+}
+
+.option-btn:hover{
+transform:scale(1.05);
+}
+
+#votes{
+margin:15px 0;
+font-size:15px;
+color:#ffaa00;
+}
+
+</style>
+
+{% endblock %}

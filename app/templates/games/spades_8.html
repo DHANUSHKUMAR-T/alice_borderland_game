@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+
+        <h2 class="menu-title">🂨 Spades 8 – Limited Oxygen</h2>
+
+        <p class="game-text">
+            Navigate the maze and reach 3 checkpoints before oxygen runs out.
+        </p>
+
+        <button id="start-btn" class="btn red-btn">Start Game</button>
+
+        <div id="game-area" style="display:none;">
+            <p id="oxygen-display">Oxygen: 100%</p>
+            <p id="checkpoint-display">Checkpoints: 0 / 3</p>
+
+            <canvas id="gameCanvas" width="600" height="400"
+                    style="background:black; border:2px solid red;"></canvas>
+
+            <p id="result"></p>
+
+            <div class="button-row">
+                <a id="next-btn"
+                   href="{{ url_for('main.suit_cards', suit='spades') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+
+                <a href="{{ url_for('main.suit_cards', suit='spades') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.onload = function() {
+    
+        const startBtn = document.getElementById("start-btn");
+        const gameArea = document.getElementById("game-area");
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const oxygenDisplay = document.getElementById("oxygen-display");
+        const checkpointDisplay = document.getElementById("checkpoint-display");
+        const resultEl = document.getElementById("result");
+        const nextBtn = document.getElementById("next-btn");
+    
+        let player = { x: 20, y: 20, size: 15, speed: 3 };
+        let oxygen = 100;
+        let checkpoints = [];
+        let collected = 0;
+        let keys = {};
+        let gameInterval;
+        let oxygenInterval;
+        let gameRunning = false;
+    
+        const mazeWalls = [
+            {x:100,y:0,w:20,h:300},
+            {x:200,y:100,w:20,h:300},
+            {x:300,y:0,w:20,h:300},
+            {x:400,y:100,w:20,h:300}
+        ];
+    
+        // 👾 MONSTERS
+        let monsters = [
+            {x:250, y:50, size:20, dx:2, dy:2},
+            {x:450, y:300, size:20, dx:-2, dy:-2}
+        ];
+    
+        startBtn.onclick = function() {
+            startBtn.style.display = "none";
+            gameArea.style.display = "block";
+            startGame();
+        };
+    
+        function startGame() {
+            oxygen = 100;
+            collected = 0;
+            resultEl.textContent = "";
+            nextBtn.style.display = "none";
+            player.x = 20;
+            player.y = 20;
+    
+            generateCheckpoints();
+    
+            gameRunning = true;
+    
+            clearInterval(gameInterval);
+            clearInterval(oxygenInterval);
+    
+            gameInterval = setInterval(update, 20);
+            oxygenInterval = setInterval(decreaseOxygen, 1000);
+        }
+    
+        function generateCheckpoints() {
+            checkpoints = [];
+            for (let i = 0; i < 3; i++) {
+                checkpoints.push({
+                    x: 500 - (i * 120),
+                    y: 350 - (i * 80),
+                    size: 15,
+                    active: true
+                });
+            }
+        }
+    
+        function decreaseOxygen() {
+            if (!gameRunning) return;
+    
+            let drain = 1; // base slow drain
+    
+            // ⚡ if near monster → faster drain
+            monsters.forEach(m => {
+                let distance = Math.hypot(player.x - m.x, player.y - m.y);
+                if (distance < 80) {
+                    drain = 3; // x3 faster
+                }
+            });
+    
+            oxygen -= drain;
+    
+            if (oxygen < 0) oxygen = 0;
+    
+            oxygenDisplay.textContent = "Oxygen: " + oxygen + "%";
+    
+            if (oxygen <= 0) {
+                failGame("💀 Oxygen Depleted!");
+            }
+        }
+    
+        document.addEventListener("keydown", function(e) {
+
+            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+                e.preventDefault();   // 🚫 stop page scrolling
+            }
+        
+            keys[e.key] = true;
+        });
+        
+        document.addEventListener("keyup", function(e) {
+            keys[e.key] = false;
+        });
+    
+        function update() {
+            if (!gameRunning) return;
+    
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+            movePlayer();
+            moveMonsters();
+            drawMaze();
+            drawCheckpoints();
+            drawMonsters();
+            drawPlayer();
+            checkCheckpointCollision();
+            checkMonsterCollision();
+        }
+    
+        function movePlayer() {
+            let nextX = player.x;
+            let nextY = player.y;
+    
+            if (keys["ArrowUp"]) nextY -= player.speed;
+            if (keys["ArrowDown"]) nextY += player.speed;
+            if (keys["ArrowLeft"]) nextX -= player.speed;
+            if (keys["ArrowRight"]) nextX += player.speed;
+    
+            if (!collidesWithWall(nextX, nextY)) {
+                player.x = nextX;
+                player.y = nextY;
+            }
+        }
+    
+        function moveMonsters() {
+            monsters.forEach(m => {
+                m.x += m.dx;
+                m.y += m.dy;
+    
+                if (m.x <= 0 || m.x + m.size >= canvas.width) m.dx *= -1;
+                if (m.y <= 0 || m.y + m.size >= canvas.height) m.dy *= -1;
+            });
+        }
+    
+        function collidesWithWall(x, y) {
+            for (let w of mazeWalls) {
+                if (
+                    x < w.x + w.w &&
+                    x + player.size > w.x &&
+                    y < w.y + w.h &&
+                    y + player.size > w.y
+                ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    
+        function drawMaze() {
+            ctx.fillStyle = "white";
+            mazeWalls.forEach(w => {
+                ctx.fillRect(w.x, w.y, w.w, w.h);
+            });
+        }
+    
+        function drawPlayer() {
+            ctx.fillStyle = "red";
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+        }
+    
+        function drawMonsters() {
+            ctx.fillStyle = "purple";
+            monsters.forEach(m => {
+                ctx.fillRect(m.x, m.y, m.size, m.size);
+            });
+        }
+    
+        function drawCheckpoints() {
+            checkpoints.forEach(cp => {
+                if (cp.active) {
+                    ctx.fillStyle = "cyan";
+                    ctx.fillRect(cp.x, cp.y, cp.size, cp.size);
+                }
+            });
+        }
+    
+        function checkCheckpointCollision() {
+            checkpoints.forEach(cp => {
+                if (
+                    cp.active &&
+                    player.x < cp.x + cp.size &&
+                    player.x + player.size > cp.x &&
+                    player.y < cp.y + cp.size &&
+                    player.y + player.size > cp.y
+                ) {
+                    cp.active = false;
+                    collected++;
+                    oxygen += 10;
+                    checkpointDisplay.textContent = "Checkpoints: " + collected + " / 3";
+    
+                    if (collected === 3) winGame();
+                }
+            });
+        }
+    
+        function checkMonsterCollision() {
+            monsters.forEach(m => {
+                if (
+                    player.x < m.x + m.size &&
+                    player.x + player.size > m.x &&
+                    player.y < m.y + m.size &&
+                    player.y + player.size > m.y
+                ) {
+                    failGame("👾 Caught by Monster!");
+                }
+            });
+        }
+    
+        function winGame() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(oxygenInterval);
+    
+            resultEl.textContent = "🎉 You Survived!";
+            resultEl.style.color = "#00ff66";
+            nextBtn.style.display = "inline-block";
+    
+            fetch("/complete/spades/8", { method: "POST" });
+        }
+    
+        function failGame(msg) {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(oxygenInterval);
+    
+            resultEl.textContent = msg;
+            resultEl.style.color = "#ff3333";
+    
+            setTimeout(startGame, 2000);
+        }
+    
+    };
+    </script>
+
+{% endblock %}

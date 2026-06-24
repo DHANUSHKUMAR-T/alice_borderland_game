@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♣ Clubs Jack – Synchronized Grids</h2>
+
+        <p class="game-text">
+            <b>Cooperative Sync:</b> You must guide both drone avatars (cyan and green circles) to their target docking ports (outlined circles) simultaneously. Moves are synchronized: arrows or WASD move <b>both</b> drones in the same direction. Use walls to desynchronize their relative positions.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Moves: <span id="move-val" style="color: #00ff66; font-weight: bold;">0</span></div>
+            </div>
+
+            <canvas id="sync-canvas" width="400" height="200"></canvas>
+
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn" onclick="initGame()">Reset Drones</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='clubs') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='clubs') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/JC.png"
+             class="card-image glow-float"
+             alt="Clubs Jack">
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("sync-canvas");
+const ctx = canvas.getContext("2d");
+const moveValEl = document.getElementById("move-val");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+const startBtn = document.getElementById("start-btn");
+
+const gridSize = 5;
+const cellW = 200 / gridSize; // Each subgrid is 200x200
+let moves = 0;
+let gameActive = true;
+
+// Avatars: Player 1 (Left Grid), Player 2 (Right Grid)
+let p1 = { x: 0, y: 0 };
+let p2 = { x: 4, y: 4 };
+
+const t1 = { x: 4, y: 0 }; // Target 1
+const t2 = { x: 0, y: 4 }; // Target 2
+
+// Walls (1 = wall, 0 = path)
+// Left Grid
+const grid1 = [
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 0],
+    [1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0]
+];
+
+// Right Grid
+const grid2 = [
+    [0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 0],
+    [0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 1],
+    [0, 0, 0, 0, 0]
+];
+
+window.addEventListener("keydown", e => {
+    if (!gameActive) return;
+    let dx = 0, dy = 0;
+
+    if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") dy = -1;
+    else if (e.key === "ArrowDown" || e.key.toLowerCase() === "s") dy = 1;
+    else if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") dx = -1;
+    else if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") dx = 1;
+    else return;
+
+    e.preventDefault();
+    moveAvatars(dx, dy);
+});
+
+function initGame() {
+    p1 = { x: 0, y: 0 };
+    p2 = { x: 4, y: 4 };
+    moves = 0;
+    gameActive = true;
+    resultEl.textContent = "";
+    nextBtn.style.display = "none";
+    moveValEl.textContent = "0";
+    draw();
+}
+
+function moveAvatars(dx, dy) {
+    let new1_x = p1.x + dx;
+    let new1_y = p1.y + dy;
+    let new2_x = p2.x + dx;
+    let new2_y = p2.y + dy;
+
+    // Check P1 moves
+    if (new1_x >= 0 && new1_x < gridSize && new1_y >= 0 && new1_y < gridSize) {
+        if (grid1[new1_y][new1_x] === 0) {
+            p1.x = new1_x;
+            p1.y = new1_y;
+        }
+    }
+
+    // Check P2 moves
+    if (new2_x >= 0 && new2_x < gridSize && new2_y >= 0 && new2_y < gridSize) {
+        if (grid2[new2_y][new2_x] === 0) {
+            p2.x = new2_x;
+            p2.y = new2_y;
+        }
+    }
+
+    moves++;
+    moveValEl.textContent = moves;
+    draw();
+    checkWin();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Subgrid 1 (Left, x: 0 to 200)
+    drawSubgrid(0, grid1, p1, t1, "#00ffff");
+
+    // Divider Line
+    ctx.strokeStyle = "#ff3333";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(200, 0);
+    ctx.lineTo(200, 200);
+    ctx.stroke();
+
+    // Subgrid 2 (Right, x: 200 to 400)
+    drawSubgrid(200, grid2, p2, t2, "#00ff66");
+}
+
+function drawSubgrid(offsetX, grid, p, t, color) {
+    for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+            let cx = offsetX + c * cellW;
+            let cy = r * cellW;
+
+            if (grid[r][c] === 1) {
+                ctx.fillStyle = "#221111";
+                ctx.fillRect(cx, cy, cellW, cellW);
+                ctx.strokeStyle = "#552222";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(cx, cy, cellW, cellW);
+            } else {
+                ctx.strokeStyle = "#111";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(cx, cy, cellW, cellW);
+            }
+        }
+    }
+
+    // Target Port (Dashed outline circle)
+    let tx = offsetX + (t.x + 0.5) * cellW;
+    let ty = (t.y + 0.5) * cellW;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(tx, ty, cellW * 0.3, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Drone Avatar (Filled glow circle)
+    let px = offsetX + (p.x + 0.5) * cellW;
+    let py = (p.y + 0.5) * cellW;
+    ctx.beginPath();
+    ctx.arc(px, py, cellW * 0.3, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+function checkWin() {
+    if (p1.x === t1.x && p1.y === t1.y && p2.x === t2.x && p2.y === t2.y) {
+        gameActive = false;
+        resultEl.textContent = "🏆 Sync Complete! Both drones successfully docked.";
+        resultEl.style.color = "#00ff66";
+        nextBtn.style.display = "inline-block";
+
+        fetch("/complete/clubs/J", { method: "POST" });
+    }
+}
+
+// Initial draw
+initGame();
+</script>
+
+<style>
+#sync-canvas {
+    border: 3px solid #ff3434;
+    border-radius: 8px;
+    background: #000;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

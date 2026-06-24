@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♥ Hearts King – The Final Choice</h2>
+
+        <p class="game-text">
+            <b>The Game of Trust:</b> You face the King of Hearts. To survive, you must play 3 rounds of Trust. You can choose to <b>TRUST (Cooperate)</b> or <b>SACRIFICE (Betray)</b>. Your heart rate must not exceed 180 bpm.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Heart Rate: <span id="heart-rate" style="color: #ff3333; font-weight: bold;">80 bpm</span></div>
+                <div>Round: <span id="round-val" style="color: #ffaa00; font-weight: bold;">1 / 3</span></div>
+            </div>
+
+            <!-- Narrative / Dialogue Panel -->
+            <div class="trial-panel">
+                <p class="trial-intro">King of Hearts:</p>
+                <p id="dialogue-text" class="dialogue-box">"Welcome, challenger. Let us see if your human nature is pure, or if you will betray to save yourself. I will choose to TRUST in this first round. What about you?"</p>
+                
+                <div id="choices-container" class="suspect-choices">
+                    <button class="suspect-btn trust" onclick="makeChoice('trust')">🤝 Trust (Cooperate)</button>
+                    <button class="suspect-btn betray" onclick="makeChoice('betray')">⚡ Sacrifice (Betray)</button>
+                </div>
+            </div>
+
+            <p id="feedback" class="feedback-text"></p>
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn" style="display:none;">Restart Showdown</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='hearts') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='hearts') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/KH.png"
+             class="card-image glow-float"
+             alt="Hearts King">
+    </div>
+</div>
+
+<script>
+const dialogueText = document.getElementById("dialogue-text");
+const choicesContainer = document.getElementById("choices-container");
+const heartRateEl = document.getElementById("heart-rate");
+const roundValEl = document.getElementById("round-val");
+const feedbackEl = document.getElementById("feedback");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+const startBtn = document.getElementById("start-btn");
+
+let round = 1;
+const maxRounds = 3;
+let heartRate = 80;
+let gameActive = true;
+let playerChoices = [];
+
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    initGame();
+};
+
+function initGame() {
+    round = 1;
+    heartRate = 80;
+    gameActive = true;
+    playerChoices = [];
+    resultEl.textContent = "";
+    feedbackEl.textContent = "";
+    nextBtn.style.display = "none";
+    heartRateEl.textContent = "80 bpm";
+    heartRateEl.style.color = "#ff3333";
+    roundValEl.textContent = "1 / 3";
+    choicesContainer.style.display = "flex";
+    dialogueText.textContent = `"Welcome, challenger. Let us see if your human nature is pure, or if you will betray to save yourself. I will choose to TRUST in this first round. What about you?"`;
+}
+
+function makeChoice(choice) {
+    if (!gameActive) return;
+    playerChoices.push(choice);
+
+    let kingChoice = "";
+    let dialogue = "";
+    let rateChange = 0;
+
+    if (round === 1) {
+        // Round 1: King trusts
+        kingChoice = "trust";
+        if (choice === "trust") {
+            dialogue = `"Splendid. We both trusted. A harmonic beginning, but the pressure will build. In Round 2, I must wonder... will you turn greedy?"`;
+            rateChange = 10;
+        } else {
+            dialogue = `"A betrayal already? How predictable. You chose survival over union. My heart aches for you. Let us see how you handle Round 2."`;
+            rateChange = 35;
+        }
+    } else if (round === 2) {
+        // Round 2: King adapts
+        if (playerChoices[0] === "betray") {
+            // King retaliates
+            kingChoice = "betray";
+            if (choice === "trust") {
+                dialogue = `"You trusted, yet I betrayed. Poetic justice, is it not? You felt the pain of betrayal. For the final round, the stakes are lethal."`;
+                rateChange = 45;
+            } else {
+                dialogue = `"We both chose betrayal. The room temperature rises. Mutual destruction is close. One last round remains. What will you do?"`;
+                rateChange = 30;
+            }
+        } else {
+            // King trusts again to test
+            kingChoice = "trust";
+            if (choice === "trust") {
+                dialogue = `"Two rounds of mutual trust. Incredible. But the final round is where the heart truly shatters. Will you stick to trust when death is guaranteed on betrayal?"`;
+                kingChoice = "trust";
+                rateChange = 10;
+            } else {
+                dialogue = `"You betrayed me after I trusted you! The ultimate deceit. I was foolish to believe in you. For the final round, I will show no mercy."`;
+                rateChange = 40;
+            }
+        }
+    } else if (round === 3) {
+        // Round 3: Final showdown
+        if (playerChoices[1] === "betray") {
+            kingChoice = "betray";
+        } else {
+            kingChoice = "trust";
+        }
+
+        if (choice === "trust") {
+            if (kingChoice === "trust") {
+                winGame("🏆 Victory! Both chose TRUST. The chambers open. Mutual salvation achieved.");
+                return;
+            } else {
+                winGame("🏆 Victory! You chose TRUST, but the King chose SACRIFICE. The King yields his life to spare yours, moved by your absolute trust.");
+                return;
+            }
+        } else {
+            if (kingChoice === "betray") {
+                failGame("💀 Both chose SACRIFICE. The room locks down. Total annihilation.");
+                return;
+            } else {
+                failGame("💀 You chose SACRIFICE but the King chose TRUST. Your guilt spikes your heart rate beyond limits. Heart rate exceeds 200 bpm.");
+                return;
+            }
+        }
+    }
+
+    heartRate += rateChange;
+    heartRateEl.textContent = `${heartRate} bpm`;
+    if (heartRate >= 180) {
+        failGame("💥 Heart attack! Your system collapsed under the emotional stress.");
+        return;
+    }
+
+    round++;
+    roundValEl.textContent = `${round} / 3`;
+    dialogueText.textContent = dialogue;
+}
+
+function failGame(msg) {
+    gameActive = false;
+    choicesContainer.style.display = "none";
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+    startBtn.style.display = "inline-block";
+}
+
+function winGame(msg) {
+    gameActive = false;
+    choicesContainer.style.display = "none";
+    resultEl.textContent = msg;
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/hearts/K", { method: "POST" });
+}
+</script>
+
+<style>
+.dialogue-box {
+    font-size: 17px;
+    font-style: italic;
+    color: #ffd6d6;
+    background: rgba(255, 0, 0, 0.05);
+    border-left: 3px solid #ff3333;
+    padding: 15px;
+    margin: 15px 0;
+    line-height: 1.6;
+}
+.suspect-btn.trust {
+    border-color: #00ff66;
+    color: #00ff66;
+}
+.suspect-btn.trust:hover {
+    background: #00ff66;
+    color: black;
+}
+.suspect-btn.betray {
+    border-color: #ff3333;
+    color: #ff3333;
+}
+.suspect-btn.betray:hover {
+    background: #ff3333;
+    color: black;
+}
+.trial-panel {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #ff3333;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+}
+.trial-intro {
+    font-size: 15px;
+    color: #ffaaaa;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.suspect-choices {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

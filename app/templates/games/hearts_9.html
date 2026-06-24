@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+<div class="game-card-display">
+
+<h2 class="menu-title">♥ 9 – Isolation</h2>
+
+<p class="game-text">
+You are alone in a dark room.<br>
+Only one door will open.<br>
+Wait patiently.
+</p>
+
+<button id="start-btn" class="btn red-btn">Enter Room</button>
+
+<div id="game-area" style="display:none;">
+
+<p id="status-text">The room is silent...</p>
+
+<p id="timer">Door unlocks in: 15s</p>
+
+<div id="door-area"></div>
+
+<div id="choice-area" style="display:none;"></div>
+
+<p id="result"></p>
+
+<div class="button-row">
+<a id="next-btn"
+href="{{ url_for('main.suit_cards', suit='hearts') }}"
+class="btn card-btn"
+style="display:none;">
+Next Card →
+</a>
+
+<a href="{{ url_for('main.suit_cards', suit='hearts') }}"
+class="btn card-btn">
+Back
+</a>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+window.onload=function(){
+
+const startBtn=document.getElementById("start-btn");
+const gameArea=document.getElementById("game-area");
+const timerText=document.getElementById("timer");
+const doorArea=document.getElementById("door-area");
+const choiceArea=document.getElementById("choice-area");
+const resultEl=document.getElementById("result");
+const nextBtn=document.getElementById("next-btn");
+
+let time=15;
+let timerInterval;
+
+let attempts=0;
+let maxAttempts=3;
+
+let pattern=[];
+let correctDoors=[];
+
+startBtn.onclick=function(){
+startBtn.style.display="none";
+gameArea.style.display="block";
+startGame();
+}
+
+function startGame(){
+
+time=15;
+
+timerText.textContent="Door unlocks in: "+time+"s";
+
+timerInterval=setInterval(()=>{
+
+time--;
+timerText.textContent="Door unlocks in: "+time+"s";
+
+if(time<=0){
+clearInterval(timerInterval);
+openDoor();
+}
+
+},1000);
+
+}
+
+function openDoor(){
+
+timerText.textContent="A door slowly opens...";
+
+doorArea.innerHTML=
+`<button class="door-btn" onclick="escapeRoom()">🚪 Exit Door</button>`;
+
+}
+
+window.escapeRoom=function(){
+
+resultEl.textContent="🎉 You waited patiently and escaped.";
+resultEl.style.color="#00ff66";
+
+setTimeout(startDoorGame,2000);
+
+}
+
+function startDoorGame(){
+
+doorArea.innerHTML="";
+timerText.textContent="Choose a door...";
+choiceArea.style.display="flex";
+
+resultEl.textContent="";
+
+attempts=0;
+
+generatePattern();
+renderDoors();
+
+}
+
+function generatePattern(){
+
+const patterns=[
+["death","live","death"],
+["live","death","live"]
+];
+
+pattern=patterns[Math.floor(Math.random()*patterns.length)];
+
+correctDoors=[];
+
+pattern.forEach((p,i)=>{
+if(p==="death"){
+correctDoors.push(i);
+}
+});
+
+}
+
+function renderDoors(){
+
+choiceArea.innerHTML="";
+
+for(let i=0;i<3;i++){
+
+choiceArea.innerHTML+=`
+<div class="door-choice" onclick="chooseDoor(${i})">
+<img src="{{ url_for('static', filename='images/death.jpeg') }}" class="door-image mystery">
+<p>Door ${i+1}</p>
+</div>
+`;
+
+}
+
+}
+
+window.chooseDoor=function(index){
+
+choiceArea.innerHTML="";
+
+for(let i=0;i<3;i++){
+
+let label = pattern[i].toUpperCase();
+
+let imgSrc = pattern[i] === "death"
+? "{{ url_for('static', filename='images/death.jpeg') }}"
+: "{{ url_for('static', filename='images/live.jpeg') }}";
+
+choiceArea.innerHTML+=`
+<div class="door-result ${pattern[i]}">
+<img src="${imgSrc}" class="door-image">
+<p>Door ${i+1} (${label})</p>
+</div>
+`;
+
+}
+
+let isCorrect = correctDoors.includes(index);
+
+if(isCorrect){
+
+fireEffect();
+
+resultEl.innerHTML="💀 The door erupts in flames...<br>But you survive.";
+resultEl.style.color="#ff4444";
+
+setTimeout(()=>{
+winGame();
+},2000);
+
+}else{
+
+attempts++;
+
+resultEl.textContent="❌ You chose the wrong path.";
+resultEl.style.color="#ffaa00";
+
+if(attempts>=maxAttempts){
+resultEl.textContent="💀 Panic consumes you.";
+return;
+}
+
+setTimeout(()=>{
+renderDoors();
+},2000);
+
+}
+
+}
+
+function fireEffect(){
+
+let fire=document.createElement("div");
+fire.className="fire-effect";
+
+document.body.appendChild(fire);
+
+setTimeout(()=>{
+fire.remove();
+},1200);
+
+}
+
+function winGame(){
+
+resultEl.innerHTML=
+"🎉 You survived Isolation.<br><br>"+
+"<b>Sometimes the dangerous path is the only escape.</b>";
+
+resultEl.style.color="#00ff66";
+
+nextBtn.style.display="inline-block";
+
+fetch("/complete/hearts/9",{method:"POST"});
+
+}
+
+}
+
+</script>
+
+<style>
+
+#door-area{
+margin:30px;
+}
+
+#choice-area{
+margin-top:25px;
+display:flex;
+justify-content:center;
+gap:30px;
+}
+
+.door-choice{
+cursor:pointer;
+text-align:center;
+}
+
+.door-image{
+width:140px;
+height:180px;
+object-fit:cover;
+border:3px solid red;
+border-radius:10px;
+box-shadow:0 0 15px red;
+transition:0.3s;
+}
+
+.door-image:hover{
+transform:scale(1.08);
+box-shadow:0 0 25px red;
+}
+
+.mystery{
+filter:brightness(0.5);
+}
+
+.door-result{
+text-align:center;
+}
+
+.door-result.live{
+border-color:#00ff66;
+color:#00ff66;
+}
+
+.door-result.death{
+border-color:#ff3333;
+color:#ff3333;
+}
+
+.fire-effect{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:radial-gradient(circle,#ff5500 0%,#550000 60%,black 100%);
+animation:fireFlash 1.2s ease;
+pointer-events:none;
+z-index:9999;
+}
+
+@keyframes fireFlash{
+0%{opacity:0;}
+30%{opacity:1;}
+100%{opacity:0;}
+}
+
+</style>
+
+{% endblock %}

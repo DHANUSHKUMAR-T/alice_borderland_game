@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♦ Diamonds Jack – Number Lock</h2>
+
+        <p class="game-text">
+            <b>Arithmetic Sequence:</b> Solve 5 mathematical locks in rapid succession. You have 15 seconds. Press <b>ENTER</b> or click Submit to input your answer.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Timer: <span id="timer-val" style="color: #ff3333; font-weight: bold;">15s</span></div>
+                <div>Unlocked: <span id="progress-val" style="color: #66ccff; font-weight: bold;">0 / 5</span></div>
+            </div>
+
+            <div class="trial-panel">
+                <p class="trial-intro">Current Lock Equation:</p>
+                <div id="equation-display" class="equation-box">Ready?</div>
+                
+                <div class="input-row">
+                    <input type="number" id="answer-input" placeholder="Enter solution" autofocus>
+                    <button class="suspect-btn submit-btn" onclick="submitAnswer()">Submit</button>
+                </div>
+            </div>
+
+            <p id="feedback" class="feedback-text"></p>
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn">Boot Up Security Terminals</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='diamonds') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='diamonds') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/JD.png"
+             class="card-image glow-float"
+             alt="Diamonds Jack">
+    </div>
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const equationEl = document.getElementById("equation-display");
+const inputEl = document.getElementById("answer-input");
+const timerEl = document.getElementById("timer-val");
+const progressEl = document.getElementById("progress-val");
+const feedbackEl = document.getElementById("feedback");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+let count = 0;
+const totalNeeded = 5;
+let timer = 15;
+let timerInterval = null;
+let gameActive = false;
+let currentAnswer = 0;
+
+inputEl.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        submitAnswer();
+    }
+});
+
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    initGame();
+};
+
+function initGame() {
+    count = 0;
+    timer = 15;
+    gameActive = true;
+    resultEl.textContent = "";
+    feedbackEl.textContent = "";
+    nextBtn.style.display = "none";
+    progressEl.textContent = "0 / 5";
+    timerEl.textContent = "15s";
+    timerEl.style.color = "#00ff66";
+    inputEl.value = "";
+    inputEl.disabled = false;
+    inputEl.focus();
+
+    generateEquation();
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (!gameActive) return;
+        timer--;
+        timerEl.textContent = `${timer}s`;
+
+        if (timer <= 5) {
+            timerEl.style.color = "#ff3333";
+        }
+
+        if (timer <= 0) {
+            clearInterval(timerInterval);
+            failGame("⏳ Time ran out. The terminal is permanently locked.");
+        }
+    }, 1000);
+}
+
+function generateEquation() {
+    if (!gameActive) return;
+
+    let op = ["+", "-", "*"][Math.floor(Math.random() * 3)];
+    let num1, num2;
+    if (op === "+") {
+        num1 = Math.floor(Math.random() * 80) + 10;
+        num2 = Math.floor(Math.random() * 80) + 10;
+        currentAnswer = num1 + num2;
+    } else if (op === "-") {
+        num1 = Math.floor(Math.random() * 90) + 10;
+        num2 = Math.floor(Math.random() * num1);
+        currentAnswer = num1 - num2;
+    } else {
+        num1 = Math.floor(Math.random() * 12) + 2;
+        num2 = Math.floor(Math.random() * 12) + 2;
+        currentAnswer = num1 * num2;
+    }
+
+    equationEl.textContent = `${num1} ${op} ${num2} = ?`;
+}
+
+function submitAnswer() {
+    if (!gameActive) return;
+
+    let val = parseInt(inputEl.value.trim());
+    if (isNaN(val)) return;
+
+    if (val === currentAnswer) {
+        count++;
+        progressEl.textContent = `${count} / ${totalNeeded}`;
+        feedbackEl.textContent = "✔️ Lock Unlocked.";
+        feedbackEl.style.color = "#00ff66";
+        inputEl.value = "";
+        inputEl.focus();
+
+        if (count >= totalNeeded) {
+            winGame();
+        } else {
+            generateEquation();
+        }
+    } else {
+        feedbackEl.textContent = "❌ Incorrect calculation. Re-calibrating terminal...";
+        feedbackEl.style.color = "#ff3333";
+        inputEl.value = "";
+        inputEl.focus();
+        // slight penalty
+        timer = Math.max(1, timer - 2);
+        timerEl.textContent = `${timer}s`;
+    }
+}
+
+function failGame(msg) {
+    gameActive = false;
+    clearInterval(timerInterval);
+    inputEl.disabled = true;
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+    setTimeout(() => {
+        startBtn.style.display = "inline-block";
+        startBtn.textContent = "Try Booting Again";
+    }, 2000);
+}
+
+function winGame() {
+    gameActive = false;
+    clearInterval(timerInterval);
+    inputEl.disabled = true;
+    resultEl.textContent = "🏆 Clear! All arithmetic security terminals bypassed.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/diamonds/J", { method: "POST" });
+}
+</script>
+
+<style>
+.equation-box {
+    font-size: 32px;
+    font-weight: bold;
+    color: #66ccff;
+    text-align: center;
+    padding: 15px;
+    background: rgba(0, 200, 255, 0.05);
+    border: 2px dashed #66ccff;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-family: monospace;
+}
+.trial-panel {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #66ccff;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+}
+.trial-intro {
+    font-size: 15px;
+    color: #aae6ff;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.input-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+.input-row input {
+    flex-grow: 1;
+    background: #111;
+    color: white;
+    border: 2px solid #66ccff;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 18px;
+    text-align: center;
+}
+.submit-btn {
+    border-color: #66ccff !important;
+    color: #66ccff !important;
+}
+.submit-btn:hover {
+    background: #66ccff !important;
+    color: black !important;
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}

@@ -12,15 +12,23 @@
 
 <div class="cards-grid">
 
-    {% for card in ["J", "Q", "K"] %}
+    {% for card, done in cards.items() %}
 
         {% set suit_code = suit_map[suit] %}
         {% set img_url = "https://deckofcardsapi.com/static/img/" + card + suit_code + ".png" %}
 
-        <a class="face-card-tile" href="{{ url_for('main.face_game_page', suit=suit, card=card) }}">
-            <img src="{{ img_url }}" class="card-image face" alt="{{ card }}">
-            <div class="face-label">{{ card }}</div>
-        </a>
+        <div class="card-wrapper">
+            <a class="face-card-tile" href="{{ url_for('main.face_game_page', suit=suit, card=card) }}">
+                <img src="{{ img_url }}" class="card-image face" alt="{{ card }}">
+                <div class="face-label">{{ card }}</div>
+            </a>
+
+            {% if done %}
+                <div class="card-status done">✔️</div>
+            {% else %}
+                <div class="card-status incomplete">✖️</div>
+            {% endif %}
+        </div>
 
     {% endfor %}
 

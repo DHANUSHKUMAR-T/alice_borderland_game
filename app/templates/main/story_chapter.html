@@ -24,9 +24,33 @@
            class="story-text"
            data-en="{{ chapter.text.en | e }}"
            data-ta="{{ chapter.text.ta | e }}"
-           data-te="{{ chapter.text.te | e }}">
+           data-te="{{ chapter.text.te | e }}"
+           data-en-title="{{ chapter.title.en | e }}"
+           data-ta-title="{{ chapter.title.ta | e }}"
+           data-te-title="{{ chapter.title.te | e }}">
             {{ chapter.text.en }}
         </p>
+
+        <!-- Choices / Decisions Panel -->
+        {% if choice_info %}
+            <div class="choices-panel">
+                {% if user_choice %}
+                    <div class="choice-made">
+                        <span class="choice-label">Decision Registered:</span>
+                        <p class="choice-val">"{{ user_choice_text }}"</p>
+                    </div>
+                {% else %}
+                    <h3 class="choice-question">🤔 DECISION POINT: {{ choice_info.question }}</h3>
+                    <form method="POST" action="{{ url_for('main.story_choose', chapter_id=chapter.id) }}" class="choices-form">
+                        {% for opt in choice_info.options %}
+                            <button type="submit" name="choice" value="{{ opt.id }}" class="btn red-btn choice-btn">
+                                {{ opt.text }}
+                            </button>
+                        {% endfor %}
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
 
         <!-- Navigation Buttons -->
         <div class="reader-nav">
@@ -37,7 +61,15 @@
             <a class="btn card-btn" href="{{ url_for('main.story_index') }}">Back to Chapters</a>
 
             {% if chapter.id < 7 %}
-                <a class="btn card-btn" href="{{ url_for('main.story_chapter', chapter_id=chapter.id + 1) }}">Next →</a>
+                {% if choice_info and not user_choice %}
+                    <button class="btn card-btn locked-nav-btn" disabled>🔒 Make a Decision to Proceed</button>
+                {% else %}
+                    <a class="btn card-btn" href="{{ url_for('main.story_chapter', chapter_id=chapter.id + 1) }}">Next →</a>
+                {% endif %}
+            {% endif %}
+
+            {% if show_fate_btn %}
+                <a class="btn red-btn glow-btn" href="{{ url_for('main.ending') }}">Determine Your Fate ⚖️</a>
             {% endif %}
         </div>
     </div>
@@ -46,5 +78,71 @@
 
 <!-- Load JS -->
 <script src="{{ url_for('static', filename='js/story_reader.js') }}"></script>
+
+<style>
+.choices-panel {
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid #ff3333;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 30px 0;
+    box-shadow: 0 0 20px rgba(255, 51, 81, 0.15);
+}
+.choice-made {
+    text-align: center;
+}
+.choice-label {
+    display: block;
+    font-size: 13px;
+    color: #ff3333;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    font-family: monospace;
+}
+.choice-val {
+    font-size: 18px;
+    font-weight: bold;
+    color: #66ccff;
+    font-style: italic;
+    margin: 0;
+}
+.choice-question {
+    font-size: 18px;
+    color: #ffaaaa;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-family: monospace;
+}
+.choices-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.choice-btn {
+    text-align: left;
+    padding: 15px 20px;
+    font-size: 15px;
+    border: 2px solid #ff3333;
+    transition: 0.2s ease;
+}
+.choice-btn:hover {
+    background: #ff3333;
+    color: black;
+    transform: translateX(5px);
+}
+.locked-nav-btn {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.glow-btn {
+    box-shadow: 0 0 20px rgba(255, 51, 81, 0.6);
+    animation: pulse 1.5s infinite alternate;
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 10px rgba(255, 51, 81, 0.4); }
+    100% { box-shadow: 0 0 25px rgba(255, 51, 81, 0.8); }
+}
+</style>
 
 {% endblock %}

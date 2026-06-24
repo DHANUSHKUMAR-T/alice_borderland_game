@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+<div class="game-card-display">
+
+<h2 class="menu-title">♦ 9 – Encrypted Exit</h2>
+
+<p class="game-text">
+The room is filled with clues.<br>
+Only 20% of them are real.
+</p>
+
+<button id="start-btn" class="btn red-btn">Scan Room</button>
+
+<div id="game-area" style="display:none;">
+
+<p class="game-text">Find the correct exit code.</p>
+
+<div id="clue-grid"></div>
+
+<p id="result"></p>
+
+<div id="answers"></div>
+
+<div class="button-row">
+
+<a id="next-btn"
+href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+class="btn card-btn"
+style="display:none;">
+Next Card →
+</a>
+
+<a href="{{ url_for('main.suit_cards', suit='diamonds') }}"
+class="btn card-btn">
+Back
+</a>
+
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+window.onload=function(){
+
+const startBtn=document.getElementById("start-btn");
+const gameArea=document.getElementById("game-area");
+const clueGrid=document.getElementById("clue-grid");
+const resultEl=document.getElementById("result");
+const answersDiv=document.getElementById("answers");
+const nextBtn=document.getElementById("next-btn");
+
+let correctCode;
+let currentRule;
+
+/* -----------------------------
+   Puzzle Patterns
+----------------------------- */
+
+const puzzles=[
+
+{
+rule:"Multiples of 7",
+numbers:[7,14,21,28],
+answer:"28"
+},
+
+{
+rule:"Prime Numbers",
+numbers:[2,3,5,7,11],
+answer:"11"
+},
+
+{
+rule:"Even Numbers",
+numbers:[4,8,12,16],
+answer:"16"
+},
+
+{
+rule:"Square Numbers",
+numbers:[4,9,16,25],
+answer:"25"
+},
+
+{
+rule:"Multiples of 5",
+numbers:[5,10,15,20],
+answer:"20"
+},
+
+{
+rule:"Fibonacci",
+numbers:[5,8,13,21],
+answer:"21"
+}
+
+];
+
+
+/* -----------------------------
+   Start Game
+----------------------------- */
+
+startBtn.onclick=function(){
+
+startBtn.style.display="none";
+gameArea.style.display="block";
+
+generateClues();
+
+}
+
+
+/* -----------------------------
+   Generate Clues
+----------------------------- */
+
+function generateClues(){
+
+clueGrid.innerHTML="";
+
+const fakeWords=["Stone","Door","Glass","Sky","Shadow","Noise"];
+
+let clues=[];
+
+/* pick random puzzle */
+
+let puzzle=puzzles[Math.floor(Math.random()*puzzles.length)];
+
+correctCode=puzzle.answer;
+currentRule=puzzle.rule;
+
+/* add real clues */
+
+clues.push(...puzzle.numbers);
+
+/* add fake numbers */
+
+for(let i=0;i<8;i++){
+clues.push(Math.floor(Math.random()*30)+1);
+}
+
+/* add fake words */
+
+clues.push(...fakeWords.slice(0,4));
+
+shuffle(clues);
+
+/* display clues */
+
+clues.forEach(c=>{
+clueGrid.innerHTML+=`<div class="clue">${c}</div>`;
+});
+
+renderAnswers();
+
+}
+
+
+/* -----------------------------
+   Render Answers
+----------------------------- */
+
+function renderAnswers(){
+
+answersDiv.innerHTML="<p>Enter Exit Code:</p>";
+
+const possibleAnswers=["7","11","16","20","21","25","28"];
+
+shuffle(possibleAnswers);
+
+const options=possibleAnswers.slice(0,4);
+
+/* ensure correct answer exists */
+
+if(!options.includes(correctCode)){
+options[0]=correctCode;
+}
+
+options.forEach(opt=>{
+
+answersDiv.innerHTML+=`
+<button class="option-btn" onclick="choose('${opt}')">
+${opt}
+</button>
+`;
+
+});
+
+}
+
+
+/* -----------------------------
+   Choose Answer
+----------------------------- */
+
+window.choose=function(choice){
+
+if(choice===correctCode){
+
+resultEl.innerHTML=
+"🎉 Correct code. Exit unlocked.<br><br>"+
+"<b>Pattern detected:</b> "+currentRule;
+
+resultEl.style.color="#00ff66";
+
+nextBtn.style.display="inline-block";
+
+fetch("/complete/diamonds/9",{method:"POST"});
+
+}
+else{
+
+resultEl.textContent="❌ Wrong code. The clues misled you.";
+resultEl.style.color="#ff3333";
+
+}
+
+}
+
+
+/* -----------------------------
+   Shuffle Function
+----------------------------- */
+
+function shuffle(array){
+
+for(let i=array.length-1;i>0;i--){
+let j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
+
+return array;
+
+}
+
+}
+
+</script>
+
+<style>
+
+#clue-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+margin:20px 0;
+}
+
+.clue{
+border:2px solid red;
+padding:10px;
+background:#111;
+text-align:center;
+}
+
+.option-btn{
+margin:10px;
+padding:12px 20px;
+border:2px solid red;
+background:#111;
+color:white;
+cursor:pointer;
+}
+
+.option-btn:hover{
+transform:scale(1.05);
+}
+
+</style>
+
+{% endblock %}

@@ -3,15 +3,125 @@
 
 <div class="story-index-container">
     <h1 class="menu-title">STORY MODE</h1>
+    <p class="story-subtitle">Completed Cards: <span style="color:#00ff66; font-weight:bold;">{{ completed_count }} / 52</span></p>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <p class="flash-message">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <div class="chapter-list">
         {% for ch in chapters %}
-            <a class="chapter-card" href="{{ url_for('main.story_chapter', chapter_id=ch.id) }}">
-                <div class="chapter-title">Chapter {{ ch.id }}</div>
-                <div class="chapter-sub">{{ ch.title }}</div>
-            </a>
+            {% if ch.unlocked %}
+                <a class="chapter-card unlocked" href="{{ url_for('main.story_chapter', chapter_id=ch.id) }}">
+                    <div class="chapter-title">Chapter {{ ch.id }}</div>
+                    <div class="chapter-sub">{{ ch.title }}</div>
+                    <span class="lock-status">🔓 Unlocked</span>
+                </a>
+            {% else %}
+                <div class="chapter-card locked">
+                    <div class="chapter-title">Chapter {{ ch.id }}</div>
+                    <div class="chapter-sub">{{ ch.title }}</div>
+                    <span class="lock-status">🔒 Locked (Requires {{ ch.required }} cards)</span>
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
+
+    <div style="margin-top: 30px;">
+        <a href="{{ url_for('main.dashboard') }}" class="btn card-btn">Back to Menu</a>
+    </div>
 </div>
+
+<style>
+.story-subtitle {
+    font-size: 18px;
+    margin-bottom: 25px;
+    color: #ccc;
+}
+.chapter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.chapter-card {
+    display: block;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 18px 24px;
+    text-decoration: none;
+    text-align: left;
+    transition: 0.3s ease;
+    position: relative;
+}
+.chapter-card.unlocked {
+    border-color: #66ccff;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(102, 204, 255, 0.1);
+}
+.chapter-card.unlocked:hover {
+    border-color: #ff3333;
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(255, 51, 81, 0.3);
+}
+.chapter-card.locked {
+    border-color: #222;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.chapter-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff3333;
+    margin-bottom: 5px;
+    font-family: monospace;
+}
+.chapter-card.unlocked .chapter-title {
+    color: #66ccff;
+}
+.chapter-sub {
+    font-size: 16px;
+    color: #eee;
+}
+.lock-status {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #aaa;
+    font-family: monospace;
+}
+.chapter-card.unlocked .lock-status {
+    color: #00ff66;
+}
+.chapter-card.locked .lock-status {
+    color: #ff3333;
+}
+.flash-messages {
+    background: rgba(255, 0, 0, 0.15);
+    border: 2px solid #ff3333;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.flash-message {
+    color: #ff9999;
+    margin: 0;
+    font-family: monospace;
+}
+</style>
 
 {% endblock %}

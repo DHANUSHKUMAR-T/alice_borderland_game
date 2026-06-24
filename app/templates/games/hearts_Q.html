@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="game-container">
+    <div class="game-card-display">
+        <h2 class="menu-title">♥ Hearts Queen – Witch Hunt</h2>
+
+        <p class="game-text">
+            <b>The Witch Hunt:</b> Expose the Witch hiding among the four suspects. The Witch is the <b>only one who lies</b>. The other three suspects always tell the truth.
+        </p>
+
+        <div id="game-area">
+            <div class="stats-row">
+                <div>Heart Rate: <span id="heart-rate" style="color: #ff3333; font-weight: bold;">80 bpm</span></div>
+                <div>Exposures: <span id="cleared-val" style="color: #ffaa00; font-weight: bold;">0 / 2</span></div>
+            </div>
+
+            <div class="trial-panel">
+                <p class="trial-intro">Testimonies:</p>
+                <div id="testimonies" class="testimonies-box"></div>
+                <div id="choices" class="suspect-choices"></div>
+            </div>
+
+            <p id="feedback" class="feedback-text"></p>
+            <p id="result" class="result-text"></p>
+
+            <div class="button-row">
+                <button id="start-btn" class="btn red-btn">Expose Witch</button>
+                <a id="next-btn"
+                   href="{{ url_for('main.face_cards', suit='hearts') }}"
+                   class="btn card-btn"
+                   style="display:none;">
+                   Next Card →
+                </a>
+                <a href="{{ url_for('main.face_cards', suit='hearts') }}"
+                   class="btn card-btn">
+                   Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CARD -->
+    <div class="floating-card">
+        <img src="https://deckofcardsapi.com/static/img/QH.png"
+             class="card-image glow-float"
+             alt="Hearts Queen">
+    </div>
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const testimoniesEl = document.getElementById("testimonies");
+const choicesEl = document.getElementById("choices");
+const heartRateEl = document.getElementById("heart-rate");
+const clearedEl = document.getElementById("cleared-val");
+const feedbackEl = document.getElementById("feedback");
+const resultEl = document.getElementById("result");
+const nextBtn = document.getElementById("next-btn");
+
+let round = 1;
+const totalRounds = 2;
+let heartRate = 80;
+let gameActive = false;
+let correctWitch = "";
+
+const rounds = [
+    {
+        testimonies: [
+            { name: "Aya", text: "I am not the Witch." },
+            { name: "Bando", text: "Aya is telling the truth." },
+            { name: "Chishiya", text: "Bando is the Witch." },
+            { name: "Daito", text: "Chishiya is lying." }
+        ],
+        // Chishiya is Witch. Aya(T), Bando(T), Chishiya(F), Daito(T).
+        correct: "Chishiya",
+        explanation: "If Chishiya is the Witch and lies when saying 'Bando is the Witch', then Bando is innocent. Aya and Bando tell the truth, and Daito correctly says Chishiya is lying. Chishiya is the only liar, making Chishiya the Witch."
+    },
+    {
+        testimonies: [
+            { name: "Aya", text: "Daito is the Witch." },
+            { name: "Bando", text: "Aya is lying." },
+            { name: "Chishiya", text: "I am not the Witch." },
+            { name: "Daito", text: "Chishiya is telling the truth." }
+        ],
+        // Aya is Witch. Aya(F), Bando(T), Chishiya(T), Daito(T).
+        correct: "Aya",
+        explanation: "Aya and Bando contradict. One of them must lie. If Aya lies and is the Witch, then Daito is innocent. Bando tells the truth. Chishiya tells the truth. Daito tells the truth. This fits perfectly, making Aya the Witch."
+    }
+];
+
+startBtn.onclick = () => {
+    startBtn.style.display = "none";
+    initGame();
+};
+
+function initGame() {
+    round = 1;
+    heartRate = 80;
+    gameActive = true;
+    resultEl.textContent = "";
+    feedbackEl.textContent = "";
+    nextBtn.style.display = "none";
+    heartRateEl.textContent = "80 bpm";
+    clearedEl.textContent = "0 / 2";
+    loadRound();
+}
+
+function loadRound() {
+    feedbackEl.textContent = "";
+    testimoniesEl.innerHTML = "";
+    choicesEl.innerHTML = "";
+    clearedEl.textContent = `${round - 1} / ${totalRounds}`;
+
+    let puzzle = rounds[round - 1];
+    correctWitch = puzzle.correct;
+
+    puzzle.testimonies.forEach(t => {
+        let div = document.createElement("div");
+        div.className = "testimony-line";
+        div.innerHTML = `🔮 <b>${t.name}</b>: "${t.text}"`;
+        testimoniesEl.appendChild(div);
+
+        let btn = document.createElement("button");
+        btn.className = "suspect-btn";
+        btn.textContent = t.name;
+        btn.onclick = () => selectWitch(t.name);
+        choicesEl.appendChild(btn);
+    });
+}
+
+function selectWitch(name) {
+    if (!gameActive) return;
+
+    if (name === correctWitch) {
+        feedbackEl.textContent = `✔️ Expose Successful! You identified the Witch. ${rounds[round-1].explanation}`;
+        feedbackEl.style.color = "#00ff66";
+        heartRate = Math.max(60, heartRate - 10);
+        heartRateEl.textContent = `${heartRate} bpm`;
+
+        if (round < totalRounds) {
+            round++;
+            setTimeout(loadRound, 4000);
+        } else {
+            winGame();
+        }
+    } else {
+        heartRate += 40;
+        heartRateEl.textContent = `${heartRate} bpm`;
+        heartRateEl.style.color = "#ff0000";
+        feedbackEl.textContent = "❌ Incorrect! Exposing an innocent increases suspicion and stress.";
+        feedbackEl.style.color = "#ff4444";
+
+        if (heartRate >= 180) {
+            failGame("💥 Heart Failure! The Witch Hunt overwhelmed your mind.");
+        }
+    }
+}
+
+function failGame(msg) {
+    gameActive = false;
+    resultEl.textContent = msg;
+    resultEl.style.color = "#ff3333";
+    setTimeout(() => {
+        startBtn.style.display = "inline-block";
+        startBtn.textContent = "Re-enter Hunt Room";
+    }, 2000);
+}
+
+function winGame() {
+    gameActive = false;
+    clearedEl.textContent = `${totalRounds} / ${totalRounds}`;
+    resultEl.textContent = "🏆 Clear! The Witch has been exposed and eliminated.";
+    resultEl.style.color = "#00ff66";
+    nextBtn.style.display = "inline-block";
+
+    fetch("/complete/hearts/Q", { method: "POST" });
+}
+</script>
+
+<style>
+.trial-panel {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #ff3333;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+}
+.trial-intro {
+    font-size: 15px;
+    color: #ffaaaa;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.testimonies-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.testimony-line {
+    font-size: 16px;
+    color: #ffe6e6;
+    padding: 10px;
+    background: rgba(255, 0, 0, 0.05);
+    border-left: 3px solid #ff3333;
+}
+.suspect-choices {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.suspect-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    background: #111;
+    color: #ff3333;
+    border: 2px solid #ff3333;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+.suspect-btn:hover {
+    background: #ff3333;
+    color: black;
+    transform: scale(1.05);
+}
+.feedback-text {
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 15px 0;
+}
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.button-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+</style>
+
+{% endblock %}
